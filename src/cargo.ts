@@ -1,83 +1,354 @@
-import { filepaths } from "@fig/autocomplete-generators";
+import { filepaths, keyValue } from "@fig/autocomplete-generators";
 
-const testList: Fig.Generator = {
-  script: function (context) {
-    const base = context[context.length - 1];
-    // allow split by single colon so that it triggers on a::b:
-    const indexIntoModPath = Math.max(base.split(/::?/).length, 1);
-    // split by :: so that tokens with a single colon are allowed
-    const moduleTokens = base.split("::");
-    const lastModule = moduleTokens.pop();
-    // check if the token has a : on the end
-    const hasColon = lastModule[lastModule.length - 1] == ":" ? ":" : "";
-    return `cargo t -- --list | awk '/: test$/ { print substr($1, 1, length($1) - 1) }' | awk -F "::" '{ print "${hasColon}"$${indexIntoModPath},int( NF / ${indexIntoModPath} ) }'`;
+const rustEditions: Fig.Suggestion[] = [
+  {
+    name: "2015",
+    description: "2015 edition",
   },
-  postProcess: function (out) {
-    return [...new Set(out.split("\n"))].map((line) => {
-      const [display, last] = line.split(" ");
-      const lastModule = parseInt(last);
-      const displayName = display.replaceAll(":", "");
-      const name = displayName.length
-        ? `${display}${lastModule ? "" : "::"}`
-        : "";
-      return { name, displayName };
+  {
+    name: "2018",
+    description: "2018 edition",
+  },
+  {
+    name: "2021",
+    description: "2021 edition",
+  },
+];
+
+const vcsOptions: {
+  name: string;
+  icon: string;
+  description: string;
+}[] = [
+  {
+    name: "git",
+    icon: "fig://icon?type=git",
+    description: "Initialize with Git",
+  },
+  {
+    name: "hg",
+    icon: "⚗️",
+    description: "Initialize with Mercurial",
+  },
+  {
+    name: "pijul",
+    icon: "🦜",
+    description: "Initialize with Pijul",
+  },
+  {
+    name: "fossil",
+    icon: "🦴",
+    description: "Initialize with Fossil",
+  },
+  {
+    name: "none",
+    icon: "🚫",
+    description: "Initialize with no VCS",
+  },
+];
+
+// TODO(grant): add this back but better with no awk
+// const testGenerator: Fig.Generator = {
+//   cache: {
+//     cacheByDirectory: true,
+//     strategy: "stale-while-revalidate",
+//     ttl: 1000 * 60 * 5,
+//   },
+//   script: (context) => {
+//     const base = context[context.length - 1];
+//     // allow split by single colon so that it triggers on a::b:
+//     const indexIntoModPath = Math.max(base.split(/::?/).length, 1);
+//     // split by :: so that tokens with a single colon are allowed
+//     const moduleTokens = base.split("::");
+//     const lastModule = moduleTokens.pop();
+//     // check if the token has a : on the end
+//     const hasColon = lastModule[lastModule.length - 1] == ":" ? ":" : "";
+//     return `cargo t -- --list | awk '/: test$/ { print substr($1, 1, length($1) - 1) }' | awk -F "::" '{ print "${hasColon}"$${indexIntoModPath},int( NF / ${indexIntoModPath} ) }'`;
+//   },
+//   postProcess: (out) => {
+//     return [...new Set(out.split("\n"))].map((line) => {
+//       const [display, last] = line.split(" ");
+//       const lastModule = parseInt(last);
+//       const displayName = display.replaceAll(":", "");
+//       const name = displayName.length
+//         ? `${display}${lastModule ? "" : "::"}`
+//         : "";
+//       return { name, displayName };
+//     });
+//   },
+//   trigger: ":",
+//   getQueryTerm: ":",
+// };
+
+type Metadata = {
+  packages: Package[];
+  resolve: Resolve;
+  workspace_root: string;
+};
+
+type Package = {
+  name: string;
+  version: string;
+  id: string;
+  description?: string;
+  source?: string;
+  targets: Target[];
+  dependencies: Dependency[];
+};
+
+type Target = {
+  name: string;
+  src_path: string;
+  kind: TargetKind[];
+};
+
+type Dependency = {
+  name: string;
+  req: string;
+  kind: "dev" | "build" | null;
+  target: string | null;
+};
+
+type TargetKind = "lib" | "bin" | "example" | "test" | "bench" | "custom-build";
+
+type Resolve = {
+  root?: string;
+};
+
+const rootPackageOrLocal = (manifest: Metadata) => {
+  const rootManifestPath = `${manifest.workspace_root}/Cargo.toml`;
+  console.log(rootManifestPath);
+  const rootPackage = manifest.packages.find(
+    (pkg) => pkg.source === rootManifestPath
+  );
+  return rootPackage
+    ? [rootPackage]
+    : manifest.packages.filter((pkg) => !pkg.source);
+};
+
+const packageGenerator: Fig.Generator = {
+  script: ["cargo", "metadata", "--format-version", "1", "--no-deps"],
+  postProcess: (data) => {
+    const manifest: Metadata = JSON.parse(data);
+    return manifest.packages.map((pkg) => {
+      return {
+        icon: "📦",
+        name: pkg.name,
+        description: `${pkg.version}${
+          pkg.description ? ` - ${pkg.description}` : ""
+        }`,
+      };
     });
   },
-  trigger: ":",
-  getQueryTerm: ":",
 };
 
-const binList: Fig.Generator = {
-  script: "cargo read-manifest",
-  postProcess: function (data: string) {
-    const manifest = JSON.parse(data);
-    return manifest.targets
-      ? manifest.targets
-          .filter(({ kind }) => kind.includes("bin"))
-          .map(({ name }) => ({ name }))
-      : [];
+const directDependencyGenerator: Fig.Generator = {
+  script: ["cargo", "metadata", "--format-version", "1"],
+  postProcess: (data: string) => {
+    const manifest: Metadata = JSON.parse(data);
+    const packages = rootPackageOrLocal(manifest);
+    const deps = packages
+      .flatMap((pkg) => pkg.dependencies)
+      .map((dep) => ({
+        name: dep.name,
+        description: dep.req,
+      }));
+    return [...new Map(deps.map((dep) => [dep.name, dep])).values()];
   },
 };
 
-export interface CrateSearchResults {
-  crates: Crate[];
-}
+const targetGenerator: ({ kind }: { kind?: TargetKind }) => Fig.Generator = ({
+  kind,
+}) => ({
+  custom: async (_, executeShellCommand, context) => {
+    const { stdout } = await executeShellCommand({
+      command: "cargo",
+      args: ["metadata", "--format-version", "1", "--no-deps"],
+    });
+    const manifest: Metadata = JSON.parse(stdout);
+    const packages = rootPackageOrLocal(manifest);
 
-export interface Crate {
-  description: null | string;
-  name: string;
-  newest_version: string;
-}
+    let targets = packages.flatMap((pkg) => pkg.targets);
 
-const searchGenerator: Fig.Generator = {
-  script: function (context) {
-    const query = encodeURIComponent(context[context.length - 1]);
-    return `curl -sfL 'https://crates.io/api/v1/crates?q=${query}&per_page=60'`;
+    if (kind) {
+      targets = targets.filter((target) => target.kind.includes(kind));
+    }
+
+    return targets.map((pkg) => {
+      const path = pkg.src_path.replace(context.currentWorkingDirectory, "");
+      return {
+        icon: "🎯",
+        name: pkg.name,
+        description: path,
+      };
+    });
   },
-  postProcess: function (out) {
-    const json = JSON.parse(out) as CrateSearchResults;
-    return json.crates.map((crate) => ({
-      name: crate.name,
-      description: crate.description || "v" + crate.newest_version,
-      icon: "📦",
+});
+
+const dependencyGenerator: Fig.Generator = {
+  script: ["cargo", "metadata", "--format-version", "1"],
+  postProcess: (data: string) => {
+    const metadata: Metadata = JSON.parse(data);
+    return metadata.packages.map((pkg) => ({
+      name: pkg.name,
+      description: pkg.description,
     }));
   },
 };
 
 const featuresGenerator: Fig.Generator = {
-  script: "cargo read-manifest",
-  postProcess: function (data: string) {
+  script: ["cargo", "read-manifest"],
+  postProcess: (data: string) => {
     const manifest = JSON.parse(data);
     return Object.keys(manifest.features || {}).map((name) => ({
+      icon: "🎚",
       name,
       description: `Features: [${manifest.features[name].join(", ")}]`,
     }));
   },
 };
 
-const targetGenerator: Fig.Generator = {
-  script: "rustc --print target-list",
-  postProcess: function (data: string) {
+const makeTasksGenerator: Fig.Generator = {
+  custom: async function (tokens, executeCommand) {
+    let makefileLocation = "Makefile.toml";
+
+    const makefileFlagIdx = tokens.findIndex((param) => param === "--makefile");
+    if (makefileFlagIdx !== -1 && tokens.length > makefileFlagIdx + 1)
+      makefileLocation = tokens[makefileFlagIdx + 1];
+
+    const args = [makefileLocation];
+    const { stdout } = await executeCommand({
+      command: "cat",
+      args,
+    });
+
+    const taskRegex = /\[tasks\.([^\]]+)\]/g;
+    let match;
+    const tasks = [];
+
+    while ((match = taskRegex.exec(stdout)) !== null) {
+      tasks.push({
+        name: match[1],
+      });
+    }
+
+    return tasks;
+  },
+};
+
+type CrateSearchResults = {
+  crates: Crate[];
+};
+
+type Crate = {
+  description?: string;
+  name: string;
+  newest_version: string;
+  recent_downloads: number;
+};
+
+type VersionSearchResults = {
+  versions: Version[];
+};
+
+type Version = {
+  num: string;
+  downloads: number;
+  created_at: string;
+  yanked: boolean;
+};
+
+// Search for crates
+// If context is empty, return the most downloaded crates for the search term,
+// if there is an `@` in the context, return the versions for the crate
+const searchGenerator: Fig.Generator = {
+  custom: async (context, executeShellCommand) => {
+    const numberFormatter = new Intl.NumberFormat(undefined, {
+      notation: "compact",
+      compactDisplay: "short",
+      maximumSignificantDigits: 3,
+    });
+
+    const lastToken = context[context.length - 1];
+    if (lastToken.includes("@") && !lastToken.startsWith("@")) {
+      const [crate, _version] = lastToken.split("@");
+      const query = encodeURIComponent(crate);
+      const { stdout } = await executeShellCommand({
+        command: "curl",
+        args: ["-sfL", `https://crates.io/api/v1/crates/${query}/versions`],
+      });
+      const json: VersionSearchResults = JSON.parse(stdout);
+
+      return json.versions.map((version) => ({
+        name: `${crate}@${version.num}`,
+        insertValue: `${version.num}`,
+        description: `${numberFormatter.format(
+          version.downloads
+        )} downloads - ${new Date(version.created_at).toLocaleDateString()}`,
+        hidden: version.yanked,
+      }));
+    } else if (lastToken.length > 0) {
+      const query = encodeURIComponent(lastToken);
+      const [{ stdout: remoteStdout }, { stdout: localStdout }] =
+        await Promise.all([
+          executeShellCommand({
+            command: "curl",
+            args: [
+              "-sfL",
+              `https://crates.io/api/v1/crates?q=${query}&per_page=60`,
+            ],
+          }),
+          executeShellCommand({
+            command: "cargo",
+            args: ["metadata", "--format-version", "1", "--no-deps"],
+          }),
+        ]);
+
+      const remoteJson: CrateSearchResults = JSON.parse(remoteStdout);
+      const remoteSuggustions: Fig.Suggestion[] = remoteJson.crates
+        .sort((a, b) => b.recent_downloads - a.recent_downloads)
+        .map((crate) => ({
+          icon: "📦",
+          displayName: `${crate.name}@${crate.newest_version}`,
+          name: crate.name,
+          description: `${numberFormatter.format(crate.recent_downloads)}${
+            crate.description ? ` - ${crate.description}` : ""
+          }`,
+        }));
+
+      let localSuggestions: Fig.Suggestion[] = [];
+      if (localStdout.trim().length > 0) {
+        const localJson: Metadata = JSON.parse(localStdout);
+        localSuggestions = localJson.packages
+          .filter((pkg) => !pkg.source)
+          .map((pkg) => ({
+            icon: "📦",
+            displayName: `${pkg.name}@${pkg.version}`,
+            name: pkg.name,
+            description: `Local Crate ${pkg.version}${
+              pkg.description ? ` - ${pkg.description}` : ""
+            }`,
+          }));
+      }
+
+      return remoteSuggustions.concat(localSuggestions);
+    } else {
+      return [];
+    }
+  },
+  trigger: (oldTokens, newTokens) => {
+    const atIndexOld = oldTokens.indexOf("@");
+    const atIndexNew = newTokens.indexOf("@");
+    return (
+      (atIndexOld === -1 && atIndexNew === -1) || atIndexOld !== atIndexNew
+    );
+  },
+  getQueryTerm: "@",
+};
+
+const tripleGenerator: Fig.Generator = {
+  script: ["rustc", "--print", "target-list"],
+  postProcess: (data: string) => {
     return data
       .split("\n")
       .filter((line) => line.trim() !== "")
@@ -87,53 +358,152 @@ const targetGenerator: Fig.Generator = {
   },
 };
 
-const dependencyGenerator: Fig.Generator = {
-  script: "cargo metadata --format-version 1",
-  postProcess: function (data: string) {
-    const metadata = JSON.parse(data);
-    const seen = new Set<string>();
-    return metadata.packages
-      .map(({ name, description }) => ({ name, description }))
-      .filter((item: { name: string; description: string }) => {
-        if (seen.has(item.name)) return false;
-        seen.add(item.name);
-        return true;
-      });
+const tomlBool: Fig.Suggestion[] = [
+  {
+    name: "true",
+  },
+  {
+    name: "false",
+  },
+];
+
+const configPairs: Record<
+  string,
+  Omit<Fig.Suggestion, "name"> & {
+    tomlSuggestions?: Fig.Suggestion[];
+  }
+> = {
+  "build.jobs": {
+    description:
+      "Sets the maximum number of compiler processes to run in parallel",
+  },
+  "build.rustc": {
+    description: "Path to the rustc compiler",
+  },
+  "build.rustc-wrapper": {
+    description: "Sets a wrapper to execute instead of rustc",
+  },
+  "build.target": {
+    description: "The default target platform triples to compile to",
+  },
+  "build.target-dir": {
+    description: "The path to where all compiler output is placed",
+  },
+  "build.rustflags": {
+    description: "Extra command-line flags to pass to rustc",
+  },
+  "build.rustdocflags": {
+    description: "Extra command-line flags to pass to rustdoc",
+  },
+  "build.incremental": {
+    description: "Whether or not to perform incremental compilation",
+    tomlSuggestions: tomlBool,
+  },
+  "build.dep-info-basedir": {
+    description: "Strips the given path prefix from dep info file paths",
+  },
+  "doc.browser": {
+    description:
+      "This option sets the browser to be used by cargo doc, overriding the BROWSER environment variable when opening documentation with the --open option",
+  },
+  "cargo-new.vcs": {
+    description:
+      "Specifies the source control system to use for initializing a new repository",
+    tomlSuggestions: vcsOptions.map((vcs) => ({
+      ...vcs,
+      name: `\\"${vcs.name}\\"`,
+      insertValue: `\\"${vcs.name}\\"`,
+    })),
+  },
+  "future-incompat-report.frequency": {
+    description:
+      "Controls how often we display a notification to the terminal when a future incompat report is available",
+    tomlSuggestions: [
+      {
+        name: '\\"always\\"',
+        // eslint-disable-next-line @withfig/fig-linter/no-useless-insertvalue
+        insertValue: '\\"always\\"',
+        description:
+          "Always display a notification when a command (e.g. cargo build) produces a future incompat report",
+      },
+      {
+        name: '\\"never\\"',
+        // eslint-disable-next-line @withfig/fig-linter/no-useless-insertvalue
+        insertValue: '\\"never\\"',
+        description: "Never display a notification",
+      },
+    ],
+  },
+  "http.debug": {
+    description: "If true, enables debugging of HTTP requests",
+    tomlSuggestions: tomlBool,
+  },
+  "http.proxy": {
+    description: "Sets an HTTP and HTTPS proxy to use",
+  },
+  "http.timeout": {
+    description: "Sets the timeout for each HTTP request, in seconds",
+  },
+  "http.cainfo": {
+    description: "Sets the path to a CA certificate bundle",
+  },
+  "http.check-revoke": {
+    description:
+      "This determines whether or not TLS certificate revocation checks should be performed. This only works on Windows",
+    tomlSuggestions: tomlBool,
+  },
+  "http.ssl-version": {
+    description: "This sets the minimum TLS version to use",
+  },
+  "http.low-speed-limit": {
+    description: "This setting controls timeout behavior for slow connections",
+  },
+  "http.multiplexing": {
+    description:
+      "When `true`, Cargo will attempt to use the HTTP2 protocol with multiplexing",
+    tomlSuggestions: tomlBool,
+  },
+  "http.user-agent": {
+    description: "Specifies a custom user-agent header to use",
+  },
+  "install.root": {
+    description:
+      "Sets the path to the root directory for installing executables for `cargo install`",
+  },
+  "net.retry": {
+    description: "Number of times to retry possibly spurious network errors",
+  },
+  "net.git-fetch-with-cli": {
+    description:
+      "If this is `true`, then Cargo will use the git executable to fetch registry indexes and git dependencies. If `false`, then it uses a built-in git library",
+    tomlSuggestions: tomlBool,
+  },
+  "net.offline": {
+    description:
+      "If this is true, then Cargo will avoid accessing the network, and attempt to proceed with locally cached data",
+    tomlSuggestions: tomlBool,
   },
 };
 
-const rustEditions: Fig.Suggestion[] = [
-  { name: "2015", description: "2015 edition" },
-  { name: "2018", description: "2018 edition" },
-  { name: "2021", description: "2021 edition" },
-];
+// Configs are in the format `key=value` where value is a toml value
+const configGenerator: Fig.Generator = keyValue({
+  keys: Object.entries(configPairs).map(([key, other]) => ({
+    name: key,
+    ...other,
+  })),
+  values: async (tokens, execute) => {
+    const key = tokens[tokens.length - 1].split("=")?.[0];
+    const pair = configPairs[key];
+    if (pair?.tomlSuggestions) {
+      return pair.tomlSuggestions;
+    }
+  },
+  separator: "=",
+});
 
-const vcsOptions: Fig.Suggestion[] = [
-  {
-    name: "git",
-    icon: "fig://icon?type=git",
-    description: "Initialize with Git",
-  },
-  {
-    name: "hg",
-    description: "Initialize with Mercurial",
-  },
-  {
-    name: "pijul",
-    description: "Initialize with Pijul",
-  },
-  {
-    name: "fossil",
-    icon: "fig://template?color=818181&badge=🦴",
-    description: "Initialize with Fossil",
-  },
-  {
-    name: "none",
-    description: "Initialize with no VCS",
-  },
-];
-
-const completionSpec: Fig.Spec = {
+const completionSpec: (toolchain?: boolean) => Fig.Spec = (
+  toolchain = true
+) => ({
   name: "cargo",
   icon: "📦",
   description: "CLI Interface for Cargo",
@@ -149,7 +519,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "bin",
-            generators: binList,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bin" }),
             isVariadic: true,
           },
         },
@@ -160,6 +531,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "example",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "example" }),
           },
         },
         {
@@ -168,8 +541,9 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "test",
-            generators: testList,
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "test" }),
           },
         },
         {
@@ -179,6 +553,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "bench",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bench" }),
           },
         },
         {
@@ -188,6 +564,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "package",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -196,6 +574,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "exclude",
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -228,7 +608,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "target",
-            generators: targetGenerator,
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
         {
@@ -264,10 +645,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -388,6 +770,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "package",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -396,6 +780,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "exclude",
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -411,7 +797,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "bin",
-            generators: binList,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bin" }),
             isVariadic: true,
           },
         },
@@ -422,6 +809,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "example",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "example" }),
           },
         },
         {
@@ -430,8 +819,9 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "test",
-            generators: testList,
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "test" }),
           },
         },
         {
@@ -441,6 +831,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "bench",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bench" }),
           },
         },
         {
@@ -466,7 +858,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "target",
-            generators: targetGenerator,
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
         {
@@ -509,10 +902,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -630,6 +1024,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "package",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -638,6 +1034,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "exclude",
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -653,7 +1051,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "bin",
-            generators: binList,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bin" }),
             isVariadic: true,
           },
         },
@@ -664,6 +1063,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "example",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "example" }),
           },
         },
         {
@@ -672,8 +1073,9 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "test",
-            generators: testList,
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "test" }),
           },
         },
         {
@@ -683,6 +1085,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "bench",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bench" }),
           },
         },
         {
@@ -708,7 +1112,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "target",
-            generators: targetGenerator,
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
         {
@@ -744,10 +1149,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -860,6 +1266,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "package",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -876,7 +1284,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "target",
-            generators: targetGenerator,
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
         {
@@ -903,10 +1312,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -988,10 +1398,11 @@ const completionSpec: Fig.Spec = {
             },
             {
               name: "--config",
-              description: "Override a configuration value (unstable)",
+              description: "Override a configuration value",
               isRepeatable: true,
               args: {
                 name: "config",
+                generators: configGenerator,
               },
             },
             {
@@ -1050,10 +1461,11 @@ const completionSpec: Fig.Spec = {
             },
             {
               name: "--config",
-              description: "Override a configuration value (unstable)",
+              description: "Override a configuration value",
               isRepeatable: true,
               args: {
                 name: "config",
+                generators: configGenerator,
               },
             },
             {
@@ -1108,10 +1520,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -1158,6 +1571,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "package",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -1166,6 +1581,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "exclude",
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -1181,7 +1598,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "bin",
-            generators: binList,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bin" }),
             isVariadic: true,
           },
         },
@@ -1192,6 +1610,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "example",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "example" }),
           },
         },
         {
@@ -1218,7 +1638,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "target",
-            generators: targetGenerator,
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
         {
@@ -1253,10 +1674,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -1371,7 +1793,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "target",
-            generators: targetGenerator,
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
         {
@@ -1384,10 +1807,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -1438,6 +1862,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "package",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -1446,6 +1872,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "exclude",
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -1461,7 +1889,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "bin",
-            generators: binList,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bin" }),
             isVariadic: true,
           },
         },
@@ -1472,6 +1901,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "example",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "example" }),
           },
         },
         {
@@ -1480,8 +1911,9 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "test",
-            generators: testList,
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "test" }),
           },
         },
         {
@@ -1491,6 +1923,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "bench",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bench" }),
           },
         },
         {
@@ -1516,7 +1950,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "target",
-            generators: targetGenerator,
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
         {
@@ -1552,10 +1987,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -1695,10 +2131,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -1753,10 +2190,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -1838,10 +2276,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -1939,6 +2378,7 @@ const completionSpec: Fig.Spec = {
           exclusiveOn: ["--git", "--index", "--registry"],
           args: {
             name: "path",
+            template: "folders",
           },
         },
         {
@@ -1971,8 +2411,9 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "bin",
-            generators: binList,
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bin" }),
           },
         },
         {
@@ -1982,6 +2423,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "example",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "example" }),
           },
         },
         {
@@ -1990,7 +2433,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "target",
-            generators: targetGenerator,
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
         {
@@ -2041,10 +2485,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -2121,8 +2566,10 @@ const completionSpec: Fig.Spec = {
       args: {
         name: "crate",
         generators: searchGenerator,
+        filterStrategy: "fuzzy",
         debounce: true,
         isVariadic: true,
+        suggestCurrentToken: true,
       },
     },
     {
@@ -2156,10 +2603,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -2225,10 +2673,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -2292,10 +2741,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -2385,10 +2835,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -2487,10 +2938,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -2593,10 +3045,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -2653,7 +3106,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "target",
-            generators: targetGenerator,
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
         {
@@ -2680,6 +3134,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "package",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -2688,6 +3144,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "exclude",
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -2715,10 +3173,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -2796,6 +3255,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "package",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -2816,10 +3277,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -2858,7 +3320,9 @@ const completionSpec: Fig.Spec = {
         },
       ],
       args: {
-        name: "spec",
+        name: "SPEC",
+        filterStrategy: "fuzzy",
+        generators: packageGenerator,
       },
     },
     {
@@ -2886,7 +3350,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "target",
-            generators: targetGenerator,
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
         {
@@ -2902,6 +3367,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "package",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -2947,10 +3414,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -3034,10 +3502,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -3100,6 +3569,8 @@ const completionSpec: Fig.Spec = {
               args: {
                 name: "package",
                 isVariadic: true,
+                filterStrategy: "fuzzy",
+                generators: packageGenerator,
               },
             },
             {
@@ -3112,10 +3583,11 @@ const completionSpec: Fig.Spec = {
             },
             {
               name: "--config",
-              description: "Override a configuration value (unstable)",
+              description: "Override a configuration value",
               isRepeatable: true,
               args: {
                 name: "config",
+                generators: configGenerator,
               },
             },
             {
@@ -3170,10 +3642,11 @@ const completionSpec: Fig.Spec = {
             },
             {
               name: "--config",
-              description: "Override a configuration value (unstable)",
+              description: "Override a configuration value",
               isRepeatable: true,
               args: {
                 name: "config",
+                generators: configGenerator,
               },
             },
             {
@@ -3228,10 +3701,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -3277,8 +3751,9 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "bin",
-            generators: binList,
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bin" }),
           },
         },
         {
@@ -3288,6 +3763,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "example",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "example" }),
           },
         },
         {
@@ -3296,6 +3773,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "package",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -3329,7 +3808,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "target",
-            generators: targetGenerator,
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
         {
@@ -3365,10 +3845,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -3433,6 +3914,7 @@ const completionSpec: Fig.Spec = {
       args: {
         name: "args",
         isVariadic: true,
+        isOptional: true,
       },
     },
     {
@@ -3446,6 +3928,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "package",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -3461,7 +3945,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "bin",
-            generators: binList,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bin" }),
             isVariadic: true,
           },
         },
@@ -3472,6 +3957,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "example",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "example" }),
           },
         },
         {
@@ -3480,8 +3967,9 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "test",
-            generators: testList,
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "test" }),
           },
         },
         {
@@ -3491,6 +3979,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "bench",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bench" }),
           },
         },
         {
@@ -3517,7 +4007,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "target",
-            generators: targetGenerator,
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
         {
@@ -3530,7 +4021,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--crate-type",
           description:
-            "Comma separated list of types of crates for the compiler to emit (unstable)",
+            "Comma separated list of types of crates for the compiler to emit",
           isRepeatable: true,
           args: {
             name: "crate-type",
@@ -3569,10 +4060,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -3680,6 +4172,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "package",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -3695,7 +4189,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "bin",
-            generators: binList,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bin" }),
             isVariadic: true,
           },
         },
@@ -3706,6 +4201,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "example",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "example" }),
           },
         },
         {
@@ -3714,8 +4211,9 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "test",
-            generators: testList,
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "test" }),
           },
         },
         {
@@ -3725,6 +4223,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "bench",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bench" }),
           },
         },
         {
@@ -3750,7 +4250,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "target",
-            generators: targetGenerator,
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
         {
@@ -3786,10 +4287,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -3919,10 +4421,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -3963,6 +4466,7 @@ const completionSpec: Fig.Spec = {
       args: {
         name: "query",
         generators: searchGenerator,
+        filterStrategy: "fuzzy",
         debounce: true,
         isVariadic: true,
         suggestCurrentToken: true,
@@ -3980,7 +4484,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "bin",
-            generators: binList,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bin" }),
             isVariadic: true,
           },
         },
@@ -3991,6 +4496,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "example",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "example" }),
           },
         },
         {
@@ -3999,8 +4506,9 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "test",
-            generators: testList,
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "test" }),
           },
         },
         {
@@ -4010,6 +4518,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "bench",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: targetGenerator({ kind: "bench" }),
           },
         },
         {
@@ -4019,6 +4529,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "package",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -4027,6 +4539,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "exclude",
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -4060,7 +4574,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "target",
-            generators: targetGenerator,
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
         {
@@ -4096,10 +4611,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -4214,9 +4730,11 @@ const completionSpec: Fig.Spec = {
       args: [
         {
           name: "TESTNAME",
+          isOptional: true,
         },
         {
           name: "args",
+          isOptional: true,
           isVariadic: true,
         },
       ],
@@ -4241,6 +4759,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "package",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -4249,6 +4769,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "exclude",
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -4268,7 +4790,9 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "target",
-            generators: targetGenerator,
+            suggestions: ["all"],
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
         {
@@ -4299,6 +4823,8 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "invert",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: dependencyGenerator,
           },
         },
         {
@@ -4308,6 +4834,8 @@ const completionSpec: Fig.Spec = {
           isRepeatable: true,
           args: {
             name: "prune",
+            filterStrategy: "fuzzy",
+            generators: dependencyGenerator,
           },
         },
         {
@@ -4351,10 +4879,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -4471,10 +5000,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -4513,9 +5043,13 @@ const completionSpec: Fig.Spec = {
         },
       ],
       args: {
-        name: "spec",
+        name: "SPEC",
         generators: {
-          script: `cargo install --list | \\grep -E "^[a-zA-Z\\-]+\\sv" | cut -d ' ' -f 1`,
+          script: [
+            "bash",
+            "-c",
+            `cargo install --list | \\grep -E "^[a-zA-Z\\-]+\\sv" | cut -d ' ' -f 1`,
+          ],
           splitOn: "\n",
         },
         isVariadic: true,
@@ -4533,12 +5067,15 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "package",
             isVariadic: true,
+            filterStrategy: "fuzzy",
+            generators: dependencyGenerator,
           },
         },
         {
           name: "--precise",
           description:
             "Update a single dependency to exactly PRECISE when used with -p",
+          dependsOn: ["--package", "-p"],
           args: {
             name: "precise",
           },
@@ -4561,10 +5098,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -4648,10 +5186,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -4741,10 +5280,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -4798,10 +5338,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -4883,10 +5424,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -4947,10 +5489,11 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--config",
-          description: "Override a configuration value (unstable)",
+          description: "Override a configuration value",
           isRepeatable: true,
           args: {
             name: "config",
+            generators: configGenerator,
           },
         },
         {
@@ -5044,6 +5587,8 @@ const completionSpec: Fig.Spec = {
           description: "Package to modify",
           args: {
             name: "SPEC",
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
           },
         },
         {
@@ -5121,14 +5666,95 @@ const completionSpec: Fig.Spec = {
           description: "Add as dependency to the given target platform",
           args: {
             name: "TARGET",
-            generators: targetGenerator,
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
           },
         },
       ],
       args: {
         name: "DEP_ID",
         generators: searchGenerator,
+        filterStrategy: "fuzzy",
         debounce: true,
+        isVariadic: true,
+        suggestCurrentToken: true,
+      },
+    },
+    {
+      name: ["remove", "rm"],
+      icon: "📦",
+      description: "Remove dependencies from a Cargo.toml manifest file",
+      options: [
+        {
+          name: "--dev",
+          description: "Remove as development dependency",
+        },
+        {
+          name: "--build",
+          description: "Remove as build dependency",
+        },
+        {
+          name: "--target",
+          description: "Remove as dependency to the given target platform",
+          args: {
+            name: "TARGET",
+            filterStrategy: "fuzzy",
+            generators: tripleGenerator,
+          },
+        },
+        {
+          name: ["-p", "--package"],
+          description: "Package to remove from",
+          args: {
+            name: "SPEC",
+            filterStrategy: "fuzzy",
+            generators: packageGenerator,
+          },
+        },
+        {
+          name: "--manifest-path",
+          description: "Path to Cargo.toml",
+        },
+        {
+          name: ["-q", "--quiet"],
+          description: "Do not print cargo log messages",
+        },
+        {
+          name: "--dry-run",
+          description: "Don't actually write the manifest",
+        },
+        {
+          name: ["-v", "--verbose"],
+          description: "Use verbose output",
+        },
+        {
+          name: "--color",
+          args: {
+            name: "WHEN",
+            suggestions: ["auto", "always", "never"],
+          },
+        },
+        {
+          name: "--frozen",
+          description: "Require Cargo.lock and cache are up to date",
+        },
+        {
+          name: "--locked",
+          description: "Require Cargo.lock is up to date",
+        },
+        {
+          name: "--offline",
+          description: "Run without accessing the network",
+        },
+        {
+          name: ["-h", "--help"],
+          description: "Print help information",
+        },
+      ],
+      args: {
+        name: "DEP_ID",
+        generators: directDependencyGenerator,
+        filterStrategy: "fuzzy",
         isVariadic: true,
       },
     },
@@ -5151,10 +5777,11 @@ const completionSpec: Fig.Spec = {
     },
     {
       name: "--config",
-      description: "Override a configuration value (unstable)",
+      description: "Override a configuration value",
       isRepeatable: true,
       args: {
         name: "config",
+        generators: configGenerator,
       },
     },
     {
@@ -5201,9 +5828,28 @@ const completionSpec: Fig.Spec = {
     },
   ],
   generateSpec: async (_tokens, executeShellCommand) => {
-    const subcommands: Fig.Subcommand[] = [];
+    const [{ stdout: toolchainStdout }, { stdout: listOutput }] =
+      await Promise.all([
+        executeShellCommand({
+          command: "rustup",
+          args: ["toolchain", "list"],
+        }),
+        // eslint-disable-next-line @withfig/fig-linter/no-useless-arrays
+        executeShellCommand({ command: "cargo", args: ["--list"] }),
+      ]);
 
-    const commands = (await executeShellCommand("cargo --list"))
+    const toolchains: Fig.Option[] = toolchainStdout
+      .split("\n")
+      .map((toolchain) => {
+        return {
+          icon: "🧰",
+          name: `+${toolchain.split("-")[0]}`,
+          description: toolchain,
+        };
+      });
+
+    const subcommands: Fig.Subcommand[] = [];
+    const commands = listOutput
       .split("\n")
       .filter((_, i) => i != 0)
       .map((line) => line.trim().split(/\s+/, 1)[0]);
@@ -5327,6 +5973,8 @@ const completionSpec: Fig.Spec = {
             description: "Specify package to format",
             args: {
               name: "package",
+              filterStrategy: "fuzzy",
+              generators: packageGenerator,
             },
           },
         ],
@@ -5547,6 +6195,7 @@ const completionSpec: Fig.Spec = {
             isRequired: true,
             args: {
               name: "DEPENDENCY",
+              filterStrategy: "fuzzy",
               generators: dependencyGenerator,
             },
           },
@@ -5586,6 +6235,7 @@ const completionSpec: Fig.Spec = {
             description: "Dependencies to not print in the output",
             args: {
               name: "DEPENDENCY",
+              filterStrategy: "fuzzy",
               generators: dependencyGenerator,
             },
           },
@@ -5613,7 +6263,8 @@ const completionSpec: Fig.Spec = {
             description: "Packages to inspect for updates",
             args: {
               name: "PACKAGES",
-              generators: dependencyGenerator,
+              filterStrategy: "fuzzy",
+              generators: packageGenerator,
             },
           },
           {
@@ -5625,7 +6276,8 @@ const completionSpec: Fig.Spec = {
             description: "Package to treat as the root package",
             args: {
               name: "PACKAGE",
-              generators: dependencyGenerator,
+              filterStrategy: "fuzzy",
+              generators: packageGenerator,
             },
           },
           {
@@ -5651,11 +6303,1260 @@ const completionSpec: Fig.Spec = {
       subcommands.push(outdated);
     }
 
+    if (commands.includes("udeps")) {
+      const udeps: Fig.Subcommand = {
+        name: "udeps",
+        icon: "📦",
+        description: "Find unused dependencies in Cargo.toml files",
+        options: [
+          {
+            name: ["-q", "--quiet"],
+            description: "No output printed to stdout",
+          },
+          {
+            name: ["-p", "--package"],
+            description: "Package(s) to check",
+            args: {
+              name: "SPEC",
+              filterStrategy: "fuzzy",
+              generators: packageGenerator,
+            },
+          },
+          {
+            name: "--all",
+            description: "Alias for --workspace (deprecated)",
+            hidden: true,
+            deprecated: true,
+          },
+          {
+            name: "--workspace",
+            description: "Check all packages in the workspace",
+          },
+          {
+            name: "--exclude",
+            description: "Exclude packages from the check",
+            args: {
+              name: "SPEC",
+              filterStrategy: "fuzzy",
+              generators: packageGenerator,
+            },
+          },
+          {
+            name: ["-j", "--jobs"],
+            description: "Number of parallel jobs, defaults to # of CPUs",
+            args: {
+              name: "N",
+            },
+          },
+          {
+            name: "--lib",
+            description: "Check only this package's library",
+          },
+          {
+            name: "--bin",
+            description: "Check only the specified binary",
+            args: {
+              name: "NAME",
+              filterStrategy: "fuzzy",
+              generators: targetGenerator({ kind: "bin" }),
+            },
+          },
+          {
+            name: "--bins",
+            description: "Check all binaries",
+          },
+          {
+            name: "--example",
+            description: "Check only the specified example",
+            args: {
+              name: "NAME",
+              filterStrategy: "fuzzy",
+              generators: targetGenerator({ kind: "example" }),
+            },
+          },
+          {
+            name: "--examples",
+            description: "Check all examples",
+          },
+          {
+            name: "--test",
+            description: "Check only the specified test target",
+            args: {
+              name: "NAME",
+              filterStrategy: "fuzzy",
+              generators: targetGenerator({ kind: "test" }),
+            },
+          },
+          {
+            name: "--tests",
+            description: "Check all tests",
+          },
+          {
+            name: "--bench",
+            description: "Check only the specified bench target",
+            args: {
+              name: "NAME",
+              filterStrategy: "fuzzy",
+              generators: targetGenerator({ kind: "bench" }),
+            },
+          },
+          {
+            name: "--benches",
+            description: "Check all benches",
+          },
+          {
+            name: "--all-targets",
+            description: "Check all targets",
+          },
+          {
+            name: "--release",
+            description: "Check artifacts in release mode, with optimizations",
+          },
+          {
+            name: "--profile",
+            description: "Check artifacts with the specified profile",
+            args: {
+              name: "PROFILE-NAME",
+            },
+          },
+          {
+            name: "--features",
+            description: "Space-separated list of features to activate",
+            args: {
+              name: "FEATURES",
+              isVariadic: true,
+            },
+          },
+          {
+            name: "--all-features",
+            description: "Activate all available features",
+          },
+          {
+            name: "--no-default-features",
+            description: "Do not activate the `default` feature",
+          },
+          {
+            name: "--target",
+            description: "Check for the target triple",
+            args: {
+              name: "TRIPLE",
+            },
+          },
+          {
+            name: "--target-dir",
+            description: "Directory for all generated artifacts",
+            args: {
+              name: "DIRECTORY",
+            },
+          },
+          {
+            name: "--manifest-path",
+            description: "Path to Cargo.toml",
+            args: {
+              name: "PATH",
+            },
+          },
+          {
+            name: "--message-format",
+            description: "Error format",
+            args: {
+              name: "FMT",
+              default: "human",
+              suggestions: ["human", "json", "short"],
+            },
+          },
+          {
+            name: ["-v", "--verbose"],
+            description:
+              "Use verbose output (-vv very verbose/build.rs output)",
+          },
+          {
+            name: "--color",
+            description: "Coloring",
+            args: {
+              name: "WHEN",
+              suggestions: ["auto", "always", "never"],
+            },
+          },
+          {
+            name: "--frozen",
+            description: "Require Cargo.lock and cache are up to date",
+          },
+          {
+            name: "--locked",
+            description: "Require Cargo.lock is up to date",
+          },
+          {
+            name: "--offline",
+            description: "Run without accessing the network",
+          },
+          {
+            name: "--output",
+            description: "Output format",
+            args: {
+              name: "OUTPUT",
+              default: "human",
+              suggestions: ["human", "json"],
+            },
+          },
+          {
+            name: "--backend",
+            description: "Backend to use for determining unused deps",
+            args: {
+              name: "BACKEND",
+              suggestions: ["save-analysis", "depinfo"],
+            },
+          },
+          {
+            name: "--keep-going",
+            description:
+              "Needed because the keep-going flag is asked about by cargo code",
+          },
+          {
+            name: "--show-unused-transitive",
+            description:
+              "Show unused dependencies that get used transitively by main dependencies. Works only with 'save-analysis' backend",
+            dependsOn: ["--backend"],
+          },
+          {
+            name: ["-h", "--help"],
+            description: "Print help information",
+          },
+          {
+            name: ["-V", "--version"],
+            description: "Print version information",
+          },
+        ],
+      };
+      subcommands.push(udeps);
+    }
+
+    if (commands.includes("deny")) {
+      const deny: Fig.Subcommand = {
+        name: "deny",
+        icon: "❌",
+        description: "Cargo plugin to help you manage large dependency graphs",
+        subcommands: [
+          {
+            name: "check",
+            description: "Checks a project's crate graph",
+            options: [
+              {
+                name: "--audit-compatible-output",
+                description:
+                  "To ease transition from cargo-audit to cargo-deny, this flag will tell cargo-deny to output the exact same output as cargo-audit would, to `stdout` instead of `stderr`, just as with cargo-audit",
+              },
+              {
+                name: ["-c", "--config"],
+                description:
+                  "Path to the config to use. Defaults to <cwd>/deny.toml if not specified",
+                args: {
+                  name: "CONFIG",
+                  generators: filepaths({ equals: "deny.toml" }),
+                },
+              },
+              {
+                name: ["-d", "--disable-fetch"],
+                description: "Disable fetching of the advisory database",
+              },
+              {
+                name: ["-g", "--graph"],
+                description: "Path to graph_output root directory",
+                args: {
+                  name: "GRAPH",
+                  template: "folders",
+                },
+              },
+              {
+                name: ["-h", "--help"],
+                description: "Print help information",
+              },
+              {
+                name: "--hide-inclusion-graph",
+                description:
+                  "Hides the inclusion graph when printing out info for a crate",
+              },
+              {
+                name: ["-s", "--show-stats"],
+                description:
+                  "Show stats for all the checks, regardless of the log-level",
+              },
+            ],
+            args: {
+              name: "WHICH",
+              isOptional: true,
+              suggestions: [
+                {
+                  name: "advisories",
+                  description: "Checks for known security vulnerabilities",
+                },
+                {
+                  name: "ban",
+                  description: "Checks for banned crates",
+                },
+                {
+                  name: "bans",
+                  description: "Checks for banned crates",
+                },
+                {
+                  name: "license",
+                  description: "Checks for crates with unknown licenses",
+                },
+                {
+                  name: "licenses",
+                  description: "Checks for crates with unknown licenses",
+                },
+                {
+                  name: "sources",
+                  description: "Checks for crates with unknown sources",
+                },
+                {
+                  name: "all",
+                  description: "Runs all checks",
+                },
+              ],
+              isVariadic: true,
+            },
+          },
+          {
+            name: "fetch",
+            description: "Fetches remote data",
+            options: [
+              {
+                name: ["-c", "--config"],
+                description: "Path to the config to use",
+                args: {
+                  name: "CONFIG",
+                  generators: filepaths({ equals: "deny.toml" }),
+                },
+              },
+              {
+                name: ["-h", "--help"],
+                description: "Print help information",
+              },
+            ],
+            args: {
+              name: "SOURCES",
+              isOptional: true,
+              suggestions: [
+                {
+                  name: "db",
+                  description: "Fetches the advisory database",
+                },
+                {
+                  name: "index",
+                  description: "Fetches the crates.io index",
+                },
+                {
+                  name: "all",
+                  description: "Fetches all remote data",
+                },
+              ],
+            },
+          },
+          {
+            name: "help",
+            description:
+              "Print this message or the help of the given subcommand(s)",
+            args: {
+              template: "help",
+              isOptional: true,
+            },
+          },
+          {
+            name: "init",
+            description: "Creates a cargo-deny config from a template",
+            options: [
+              {
+                name: ["-h", "--help"],
+                description: "Print help information",
+              },
+            ],
+            args: {
+              name: "CONFIG",
+              description: "The path to create",
+              generators: filepaths({ equals: "deny.toml" }),
+            },
+          },
+          {
+            name: "list",
+            description:
+              "Outputs a listing of all licenses and the crates that use them",
+            options: [
+              {
+                name: ["-c", "--config"],
+                description: "Path to the config to use",
+                args: {
+                  name: "CONFIG",
+                  generators: filepaths({ equals: "deny.toml" }),
+                },
+              },
+              {
+                name: ["-f", "--format"],
+                description: "The format of the output",
+                args: {
+                  name: "FORMAT",
+                  suggestions: ["human", "json", "tsv"],
+                },
+              },
+              {
+                name: ["-h", "--help"],
+                description: "Print help information",
+              },
+              {
+                name: ["-l", "--layout"],
+                description: "The layout for the output",
+                args: {
+                  name: "LAYOUT",
+                  suggestions: [{ name: "crate" }, { name: "license" }],
+                },
+              },
+              {
+                name: ["-t", "--threshold"],
+                description: "Minimum confidence threshold for license text",
+                args: {
+                  name: "THRESHOLD",
+                  suggestions: [
+                    "0.0",
+                    "0.1",
+                    "0.2",
+                    "0.3",
+                    "0.4",
+                    "0.5",
+                    "0.6",
+                    "0.7",
+                    "0.8",
+                    "0.9",
+                    "1.0",
+                  ],
+                },
+              },
+            ],
+          },
+        ],
+        options: [
+          {
+            name: "--all-features",
+            description: "Activate all available features",
+          },
+          {
+            name: ["-c", "--color"],
+            description: "Coloring",
+            args: {
+              name: "WHEN",
+              suggestions: ["auto", "always", "never"],
+            },
+          },
+          {
+            name: "--exclude",
+            description:
+              "One or more crates to exclude from the crate graph that is used",
+            args: {
+              name: "EXCLUDE",
+              filterStrategy: "fuzzy",
+              generators: packageGenerator,
+            },
+          },
+          {
+            name: ["-f", "--format"],
+            description: "Specify the format of cargo-deny's output",
+            args: {
+              name: "FORMAT",
+              default: "human",
+              suggestions: ["human", "json"],
+            },
+          },
+          {
+            name: "--features",
+            description:
+              "Space or comma separated list of features to activate",
+            args: {
+              name: "FEATURES",
+              isVariadic: true,
+            },
+          },
+          {
+            name: "--frozen",
+            description: "Require Cargo.lock and cache are up to date",
+          },
+          {
+            name: ["-h", "--help"],
+            description: "Print help information",
+          },
+          {
+            name: ["-L", "--log-level"],
+            description: "The log level for messages",
+            args: {
+              name: "LOG_LEVEL",
+              default: "warn",
+              suggestions: ["off", "error", "warn", "info", "debug", "trace"],
+            },
+          },
+          {
+            name: "--locked",
+            description: "Require Cargo.lock is up to date",
+          },
+          {
+            name: "--manifest-path",
+            description:
+              "The path of a Cargo.toml to use as the context for the operation",
+            args: {
+              name: "MANIFEST_PATH",
+            },
+          },
+          {
+            name: "--no-default-features",
+            description: "Do not activate the `default` feature",
+          },
+          {
+            name: "--offline",
+            description:
+              "Run without accessing the network. If used with the `check` subcommand, this also disables advisory database fetching",
+          },
+          {
+            name: ["-t", "--target"],
+            description: "One or more platforms to filter crates by",
+            args: {
+              name: "TARGET",
+            },
+          },
+          {
+            name: ["-V", "--version"],
+            description: "Print version information",
+          },
+          {
+            name: "--workspace",
+            description:
+              "If passed, all workspace packages are used as roots for the crate graph",
+          },
+        ],
+      };
+      subcommands.push(deny);
+    }
+
+    if (commands.includes("bloat")) {
+      const bloat: Fig.Subcommand = {
+        name: "bloat",
+        icon: "⚖️",
+        description: "Find out what takes most of the space in your executable",
+        options: [
+          {
+            name: ["-h", "--help"],
+            description: "Print help information",
+          },
+          {
+            name: ["-V", "--version"],
+            description: "Print version information",
+          },
+          {
+            name: "--lib",
+            description: "Build only this package's library",
+          },
+          {
+            name: "--bin",
+            description: "Build only the specified binary",
+            args: {
+              name: "NAME",
+            },
+          },
+          {
+            name: "--example",
+            description: "Build only the specified example",
+            args: {
+              name: "NAME",
+            },
+          },
+          {
+            name: "--test",
+            description: "Build only the specified test target",
+            args: {
+              name: "NAME",
+            },
+          },
+          {
+            name: ["-p", "--package"],
+            description: "Package to build",
+            args: {
+              name: "SPEC",
+              filterStrategy: "fuzzy",
+              generators: packageGenerator,
+            },
+          },
+          {
+            name: "--release",
+            description: "Build artifacts in release mode, with optimizations",
+          },
+          {
+            name: ["-j", "--jobs"],
+            description: "Number of parallel jobs, defaults to # of CPUs",
+            args: {
+              name: "N",
+            },
+          },
+          {
+            name: "--features",
+            description: "Space-separated list of features to activate",
+            args: {
+              name: "FEATURES",
+            },
+          },
+          {
+            name: "--all-features",
+            description: "Activate all available features",
+          },
+          {
+            name: "--no-default-features",
+            description: "Do not activate the `default` feature",
+          },
+          {
+            name: "--profile",
+            description: "Build with the given profile",
+            args: {
+              name: "PROFILE",
+            },
+          },
+          {
+            name: "--target",
+            description: "Build for the target triple",
+            args: {
+              name: "TARGET",
+            },
+          },
+          {
+            name: "--target-dir",
+            description: "Directory for all generated artifacts",
+            args: {
+              name: "DIRECTORY",
+            },
+          },
+          {
+            name: "--frozen",
+            description: "Require Cargo.lock and cache are up to date",
+          },
+          {
+            name: "--locked",
+            description: "Require Cargo.lock is up to date",
+          },
+          {
+            name: "-Z",
+            description:
+              "Unstable (nightly-only) flags to Cargo, see 'cargo -Z help' for details",
+            args: {
+              name: "FLAG",
+              isVariadic: true,
+            },
+          },
+          {
+            name: "--crates",
+            description: "Per crate bloatedness",
+          },
+          {
+            name: "--time",
+            description: "Per crate build time. Will run `cargo clean` first",
+          },
+          {
+            name: "--filter",
+            description: "Filter functions by crate",
+            args: {
+              name: "CRATE|REGEXP",
+            },
+          },
+          {
+            name: "--split-std",
+            description:
+              "Split the 'std' crate to original crates like core, alloc, etc",
+          },
+          {
+            name: "--symbols-section",
+            description: "Use custom symbols section (ELF-only)",
+            args: {
+              name: "NAME",
+              default: ".text",
+            },
+          },
+          {
+            name: "--no-relative-size",
+            description: "Hide 'File' and '.text' columns",
+          },
+          {
+            name: "--full-fn",
+            description: "Print full function name with hash values",
+          },
+          {
+            name: "-n",
+            description: "Number of lines to show, 0 to show all [default: 20]",
+            args: {
+              name: "NUM",
+              default: "20",
+            },
+          },
+          {
+            name: ["-w", "--wide"],
+            description: "Do not trim long function names",
+          },
+          {
+            name: "--message-format",
+            description: "Output format",
+            args: {
+              name: "FMT",
+              default: "table",
+              suggestions: ["table", "json"],
+            },
+          },
+        ],
+      };
+      subcommands.push(bloat);
+    }
+
+    if (commands.includes("sort")) {
+      const sort: Fig.Subcommand = {
+        name: "sort",
+        icon: "🛠",
+        description: "Ensure Cargo.toml dependency tables are sorted",
+        options: [
+          {
+            name: ["-h", "--help"],
+            description: "Print help information",
+          },
+          {
+            name: ["-V", "--version"],
+            description: "Print version information",
+          },
+          {
+            name: ["-c", "--check"],
+            description:
+              "Non-zero exit if Cargo.toml is unsorted, overrides default behavior",
+          },
+          {
+            name: ["-g", "--grouped"],
+            description:
+              "When sorting groups of key value pairs blank lines are kept",
+          },
+          {
+            name: ["-p", "--print"],
+            description: "Prints Cargo.toml, lexically sorted, to stdout",
+          },
+          {
+            name: ["-w", "--workspace"],
+            description: "Checks every crate in a workspace",
+          },
+          {
+            name: ["-n", "--no-format"],
+            description: "Skip formatting after sorting",
+            args: {
+              name: "no-format",
+            },
+          },
+          {
+            name: ["-o", "--order"],
+            description:
+              "When sorting groups of key value pairs blank lines are kept",
+            args: {
+              name: "order",
+            },
+          },
+        ],
+        args: {
+          name: "CWD",
+          description: "The directory to run the command in",
+          isOptional: true,
+          template: "folders",
+        },
+      };
+      subcommands.push(sort);
+    }
+
+    if (commands.includes("fuzz")) {
+      const fuzz: Fig.Subcommand = {
+        name: "fuzz",
+        icon: "🛠",
+        description: "A `cargo` subcommand for fuzzing with `libFuzzer`!",
+        subcommands: [
+          {
+            name: "add",
+            description: "Add a new fuzz target",
+          },
+          {
+            name: "build",
+            description: "Build fuzz targets",
+          },
+          {
+            name: "cmin",
+            description: "Minify a corpus",
+          },
+          {
+            name: "coverage",
+            description:
+              "Run program on the generated corpus and generate coverage information",
+          },
+          {
+            name: "fmt",
+            description: "Print the `std::fmt::Debug` output for an input",
+          },
+          {
+            name: "help",
+            description:
+              "Prints this message or the help of the given subcommand(s)",
+          },
+          {
+            name: "init",
+            description: "Initialize the fuzz directory",
+          },
+          {
+            name: "list",
+            description: "List all the existing fuzz targets",
+          },
+          {
+            name: "run",
+            description: "Run a fuzz target",
+          },
+          {
+            name: "tmin",
+            description: "Minify a test case",
+          },
+        ],
+      };
+      subcommands.push(fuzz);
+    }
+
+    if (commands.includes("insta")) {
+      const commonOptions: Fig.Option[] = [
+        {
+          name: ["-h", "--help"],
+          description: "Print help information",
+        },
+        {
+          name: ["-V", "--version"],
+          description: "Print version information",
+        },
+        {
+          name: "--color",
+          description: "Coloring: auto, always, never",
+          args: {
+            name: "WHEN",
+            default: "auto",
+            suggestions: ["auto", "always", "never"],
+          },
+        },
+        {
+          name: "--manifest-path",
+          description: "Path to Cargo.toml",
+          args: {
+            name: "PATH",
+            generators: filepaths({ equals: "Cargo.toml" }),
+          },
+        },
+        {
+          name: "--workspace-root",
+          description: "Explicit path to the workspace root",
+          args: {
+            name: "PATH",
+            template: "folders",
+          },
+        },
+        {
+          name: ["-e", "--extensions"],
+          description: "Sets the extensions to consider.  Defaults to `.snap`",
+          args: {
+            name: "EXTENSIONS",
+            isVariadic: true,
+          },
+        },
+        {
+          name: "--all",
+          description: "Work on all packages in the workspace",
+        },
+        {
+          name: "--no-ignore",
+          description: "Also walk into ignored paths",
+        },
+      ];
+
+      const insta: Fig.Subcommand = {
+        name: "insta",
+        icon: "🛠",
+        description: "A `cargo` subcommand for snapshot testing",
+        subcommands: [
+          {
+            name: "review",
+            description: "Interactively review snapshots",
+            options: [
+              ...commonOptions,
+              {
+                name: "--snapshot",
+                description: "Limits the operation to one or more snapshots",
+                args: {
+                  name: "snapshot-filter",
+                  isVariadic: true,
+                },
+              },
+              {
+                name: ["-q", "--quiet"],
+                description: "Do not print to stdout",
+              },
+            ],
+          },
+          {
+            name: "reject",
+            description: "Rejects all snapshots",
+            options: [
+              ...commonOptions,
+              {
+                name: "--snapshot",
+                description: "Limits the operation to one or more snapshots",
+                args: {
+                  name: "snapshot-filter",
+                  isVariadic: true,
+                },
+              },
+              {
+                name: ["-q", "--quiet"],
+                description: "Do not print to stdout",
+              },
+            ],
+          },
+          {
+            name: "accept",
+            description: "Accepts all snapshots",
+            options: [
+              ...commonOptions,
+              {
+                name: "--snapshot",
+                description: "Limits the operation to one or more snapshots",
+                args: {
+                  name: "snapshot-filter",
+                  isVariadic: true,
+                },
+              },
+              {
+                name: ["-q", "--quiet"],
+                description: "Do not print to stdout",
+              },
+            ],
+          },
+          {
+            name: "test",
+            description: "Run tests and then reviews",
+            options: [
+              ...commonOptions,
+              {
+                name: "--snapshot",
+                description: "Limits the operation to one or more snapshots",
+                args: {
+                  name: "snapshot-filter",
+                  isVariadic: true,
+                },
+              },
+              {
+                name: ["-q", "--quiet"],
+                description: "Do not print to stdout",
+              },
+              {
+                name: ["-p", "--package"],
+                description: "Package to run tests for",
+                args: {
+                  name: "SPEC",
+                  filterStrategy: "fuzzy",
+                  generators: packageGenerator,
+                },
+              },
+              {
+                name: "--no-force-pass",
+                description: "Disable force-passing of snapshot tests",
+              },
+              {
+                name: "--fail-fast",
+                description: "Prevent running all tests regardless of failure",
+              },
+              {
+                name: "--features",
+                description: "Space-separated list of features to activate",
+                args: {
+                  name: "features",
+                },
+              },
+              {
+                name: ["-j", "--jobs"],
+                description: "Number of parallel jobs, defaults to # of CPUs",
+                args: {
+                  name: "jobs",
+                },
+              },
+              {
+                name: "--release",
+                description:
+                  "Build artifacts in release mode, with optimizations",
+              },
+              {
+                name: "--all-features",
+                description: "Activate all available features",
+              },
+              {
+                name: "--no-default-features",
+                description: "Do not activate the `default` feature",
+              },
+              {
+                name: "--review",
+                description: "Follow up with review",
+              },
+              {
+                name: "--accept",
+                description: "Accept all snapshots after test",
+              },
+              {
+                name: "--accept-unseen",
+                description: "Accept all new (previously unseen)",
+              },
+              {
+                name: "--keep-pending",
+                description: "Do not reject pending snapshots before run",
+              },
+              {
+                name: "--force-update-snapshots",
+                description:
+                  "Update all snapshots even if they are still matching",
+              },
+              {
+                name: "--delete-unreferenced-snapshots",
+                description: "Delete unreferenced snapshots after the test run",
+              },
+              {
+                name: "--glob-filter",
+                description: "Filters to apply to the insta glob feature",
+                args: {
+                  name: "glob-filter",
+                  isVariadic: true,
+                },
+              },
+              {
+                name: ["-Q", "--no-quiet"],
+                description: "Do not pass the quiet flag (`-q`) to tests",
+              },
+              {
+                name: "--test-runner",
+                description: "Picks the test runner",
+                args: {
+                  name: "test-runner",
+                },
+              },
+            ],
+          },
+          {
+            name: "pending",
+            description: "Print a summary of all pending snapshots",
+            options: [
+              ...commonOptions,
+              {
+                name: "--as-json",
+                description: "Changes the output from human readable to JSON",
+              },
+            ],
+          },
+          {
+            name: "show",
+            description: "Shows a specific snapshot",
+            options: commonOptions,
+            args: {
+              name: "path",
+              description: "The path to the snapshot file",
+              generators: filepaths({ extensions: ["snap"] }),
+            },
+          },
+        ],
+        options: [
+          {
+            name: ["-h", "--help"],
+            description: "Print help information",
+          },
+          {
+            name: ["-V", "--version"],
+            description: "Print version information",
+          },
+          {
+            name: "--color",
+            description: "Coloring: auto, always, never",
+            args: {
+              name: "WHEN",
+              default: "auto",
+              suggestions: ["auto", "always", "never"],
+            },
+          },
+        ],
+      };
+      subcommands.push(insta);
+    }
+
+    if (commands.includes("make")) {
+      const make: Fig.Subcommand = {
+        name: "make",
+        icon: "🛠",
+        description: "Rust cargo-make task runner and build tool",
+        args: {
+          name: "TASK",
+          filterStrategy: "fuzzy",
+          isVariadic: true,
+          isOptional: true,
+          generators: makeTasksGenerator,
+        },
+        options: [
+          {
+            name: ["--help", "-h"],
+            description: "Print help information",
+          },
+          {
+            name: ["--version", "-V"],
+            description: "Print version information",
+          },
+          {
+            name: "--makefile",
+            description:
+              "The optional toml file containing the tasks definitions",
+            args: { name: "FILE", template: "filepaths" },
+          },
+          {
+            name: ["--task", "-t"],
+            description: "The task name to execute",
+            args: {
+              name: "TASK",
+              filterStrategy: "fuzzy",
+              isVariadic: true,
+              isOptional: true,
+              generators: makeTasksGenerator,
+            },
+          },
+          {
+            name: ["--profile", "-p"],
+            description: "The profile name",
+            args: { name: "PROFILE", default: "development" },
+          },
+          {
+            name: "--cwd",
+            description: "Set the current working directory",
+            args: { name: "DIRECTORY", template: "folders" },
+          },
+          {
+            name: "--no-workspace",
+            description: "Disable workspace support",
+          },
+          {
+            name: "--no-on-error",
+            description:
+              "Disable on error flow even if defined in config sections",
+          },
+          {
+            name: "--allow-private",
+            description: "Allow invocation of private tasks",
+          },
+          {
+            name: "--skip-init-end-tasks",
+            description: "If set, init and end tasks are skipped",
+          },
+          {
+            name: "--skip-tasks",
+            description: "Skip all tasks that match the provided regex",
+            args: { name: "SKIP_TASK_PATTERNS" },
+          },
+          {
+            name: "--env-file",
+            description: "Set environment variables from provided file",
+            args: { name: "FILE", template: "filepaths" },
+          },
+          {
+            name: ["--env", "-e"],
+            description: "Set environment variables",
+            args: { name: "ENV" },
+          },
+          {
+            name: ["--loglevel", "-l"],
+            description: "The log level",
+            args: {
+              name: "LOG LEVEL",
+              suggestions: ["verbose", "info", "error", "off"],
+            },
+          },
+          {
+            name: ["--verbose", "-v"],
+            description: "Sets the log level to verbose",
+          },
+          {
+            name: "--quiet",
+            description: "Sets the log level to error",
+          },
+          {
+            name: "--silent",
+            description: "Sets the log level to off",
+          },
+          {
+            name: "--no-color",
+            description: "Disables colorful output",
+          },
+          {
+            name: "--time-summary",
+            description: "Print task level time summary at end of flow",
+          },
+          {
+            name: "--experimental",
+            description:
+              "Allows access to unsupported experimental predefined tasks",
+          },
+          {
+            name: "--disable-check-for-updates",
+            description: "Disables the update check during startup",
+          },
+          {
+            name: "--output-format",
+            description: "The print/list steps format",
+            args: {
+              name: "OUTPUT FORMAT",
+              suggestions: [
+                "default",
+                "short-description",
+                "markdown",
+                "markdown-single-page",
+                "markdown-sub-section",
+                "autocomplete",
+              ],
+            },
+          },
+          {
+            name: "--output-file",
+            description: "The list steps output file name",
+            args: { name: "OUTPUT_FILE", template: "filepaths" },
+          },
+          {
+            name: "--hide-uninteresting",
+            description: "Hide any minor tasks such as pre/post hooks",
+          },
+          {
+            name: "--print-steps",
+            description:
+              "Only prints the steps of the build in the order they will be invoked but without invoking them",
+          },
+          {
+            name: "--list-all-steps",
+            description: "Lists all known steps",
+          },
+          {
+            name: "--list-category-steps",
+            description: "List steps for a given category",
+            args: { name: "CATEGORY" },
+          },
+          {
+            name: "--diff-steps",
+            description:
+              "Runs diff between custom flow and prebuilt flow (requires git)",
+          },
+        ],
+      };
+      subcommands.push(make);
+    }
+
     return {
       name: "cargo",
       subcommands,
+      options: toolchains,
     };
   },
-};
+});
 
-export default completionSpec;
+export default completionSpec();
