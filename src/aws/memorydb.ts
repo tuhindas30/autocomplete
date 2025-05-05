@@ -173,6 +173,13 @@ const completionSpec: Fig.Spec = {
           },
         },
         {
+          name: "--multi-region-cluster-name",
+          description: "The name of the multi-Region cluster to be created",
+          args: {
+            name: "string",
+          },
+        },
+        {
           name: "--parameter-group-name",
           description:
             "The name of the parameter group associated with the cluster",
@@ -307,6 +314,13 @@ const completionSpec: Fig.Spec = {
           },
         },
         {
+          name: "--engine",
+          description: "The name of the engine to be used for the cluster",
+          args: {
+            name: "string",
+          },
+        },
+        {
           name: "--engine-version",
           description:
             "The version number of the Redis OSS engine to be used for the cluster",
@@ -333,6 +347,99 @@ const completionSpec: Fig.Spec = {
           name: "--no-data-tiering",
           description:
             "Enables data tiering. Data tiering is only supported for clusters using the r6gd node type. This parameter must be set when using r6gd nodes. For more information, see Data tiering",
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "create-multi-region-cluster",
+      description: "Creates a new multi-Region cluster",
+      options: [
+        {
+          name: "--multi-region-cluster-name-suffix",
+          description: "A suffix to be added to the multi-Region cluster name",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--description",
+          description: "A description for the multi-Region cluster",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--engine",
+          description:
+            "The name of the engine to be used for the multi-Region cluster",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--engine-version",
+          description:
+            "The version of the engine to be used for the multi-Region cluster",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--node-type",
+          description: "The node type to be used for the multi-Region cluster",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--multi-region-parameter-group-name",
+          description:
+            "The name of the multi-Region parameter group to be associated with the cluster",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--num-shards",
+          description: "The number of shards for the multi-Region cluster",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--tls-enabled",
+          description:
+            "Whether to enable TLS encryption for the multi-Region cluster",
+        },
+        {
+          name: "--no-tls-enabled",
+          description:
+            "Whether to enable TLS encryption for the multi-Region cluster",
+        },
+        {
+          name: "--tags",
+          description:
+            "A list of tags to be applied to the multi-Region cluster",
+          args: {
+            name: "list",
+          },
         },
         {
           name: "--cli-input-json",
@@ -602,7 +709,7 @@ const completionSpec: Fig.Spec = {
     {
       name: "delete-cluster",
       description:
-        "Deletes a cluster. It also deletes all associated nodes and node endpoints   CreateSnapshot permission is required to create a final snapshot. Without this permission, the API call will fail with an Access Denied exception",
+        "Deletes a cluster. It also deletes all associated nodes and node endpoints.   CreateSnapshot permission is required to create a final snapshot. Without this permission, the API call will fail with an Access Denied exception",
       options: [
         {
           name: "--cluster-name",
@@ -612,9 +719,46 @@ const completionSpec: Fig.Spec = {
           },
         },
         {
+          name: "--multi-region-cluster-name",
+          description: "The name of the multi-Region cluster to be deleted",
+          args: {
+            name: "string",
+          },
+        },
+        {
           name: "--final-snapshot-name",
           description:
             "The user-supplied name of a final cluster snapshot. This is the unique name that identifies the snapshot. MemoryDB creates the snapshot, and then deletes the cluster immediately afterward",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "delete-multi-region-cluster",
+      description: "Deletes an existing multi-Region cluster",
+      options: [
+        {
+          name: "--multi-region-cluster-name",
+          description: "The name of the multi-Region cluster to be deleted",
           args: {
             name: "string",
           },
@@ -918,6 +1062,14 @@ const completionSpec: Fig.Spec = {
       description: "Returns a list of the available Redis OSS engine versions",
       options: [
         {
+          name: "--engine",
+          description:
+            "The name of the engine for which to list available versions",
+          args: {
+            name: "string",
+          },
+        },
+        {
           name: "--engine-version",
           description: "The Redis OSS engine version",
           args: {
@@ -1060,6 +1212,83 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "string",
           },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--starting-token",
+          description:
+            "A token to specify where to start paginating.  This is the\nNextToken from a previously truncated response.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--page-size",
+          description:
+            "The size of each page to get in the AWS service call.  This\ndoes not affect the number of items returned in the command's\noutput.  Setting a smaller page size results in more calls to\nthe AWS service, retrieving fewer items in each call.  This can\nhelp prevent the AWS service calls from timing out.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--max-items",
+          description:
+            "The total number of items to return in the command's output.\nIf the total number of items available is more than the value\nspecified, a NextToken is provided in the command's\noutput.  To resume pagination, provide the\nNextToken value in the starting-token\nargument of a subsequent command.  Do not use the\nNextToken response element directly outside of the\nAWS CLI.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "describe-multi-region-clusters",
+      description: "Returns details about one or more multi-Region clusters",
+      options: [
+        {
+          name: "--multi-region-cluster-name",
+          description:
+            "The name of a specific multi-Region cluster to describe",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--max-results",
+          description: "The maximum number of results to return",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--next-token",
+          description: "A token to specify where to start paginating",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--show-cluster-details",
+          description: "Details about the multi-Region cluster",
+        },
+        {
+          name: "--no-show-cluster-details",
+          description: "Details about the multi-Region cluster",
         },
         {
           name: "--cli-input-json",
@@ -1817,6 +2046,36 @@ const completionSpec: Fig.Spec = {
       ],
     },
     {
+      name: "list-allowed-multi-region-cluster-updates",
+      description: "Lists the allowed updates for a multi-Region cluster",
+      options: [
+        {
+          name: "--multi-region-cluster-name",
+          description: "The name of the multi-Region cluster",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "list-allowed-node-type-updates",
       description:
         "Lists all available node types that you can scale to from your cluster's current node type. When you use the UpdateCluster operation to scale your cluster, the value of the NodeType parameter must be one of the node types returned by this operation",
@@ -2188,6 +2447,13 @@ const completionSpec: Fig.Spec = {
           },
         },
         {
+          name: "--engine",
+          description: "The name of the engine to be used for the cluster",
+          args: {
+            name: "string",
+          },
+        },
+        {
           name: "--engine-version",
           description:
             "The upgraded version of the engine to be run on the nodes. You can upgrade to a newer engine version, but you cannot downgrade to an earlier engine version. If you want to use an earlier engine version, you must delete the existing cluster and create it anew with the earlier engine version",
@@ -2213,6 +2479,84 @@ const completionSpec: Fig.Spec = {
           name: "--acl-name",
           description:
             "The Access Control List that is associated with the cluster",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "update-multi-region-cluster",
+      description:
+        "Updates the configuration of an existing multi-Region cluster",
+      options: [
+        {
+          name: "--multi-region-cluster-name",
+          description: "The name of the multi-Region cluster to be updated",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--node-type",
+          description:
+            "The new node type to be used for the multi-Region cluster",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--description",
+          description: "A new description for the multi-Region cluster",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--engine-version",
+          description:
+            "The new engine version to be used for the multi-Region cluster",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--shard-configuration",
+          description:
+            "A request to configure the sharding properties of a cluster",
+          args: {
+            name: "structure",
+          },
+        },
+        {
+          name: "--multi-region-parameter-group-name",
+          description:
+            "The new multi-Region parameter group to be associated with the cluster",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--update-strategy",
+          description:
+            "Whether to force the update even if it may cause data loss",
           args: {
             name: "string",
           },

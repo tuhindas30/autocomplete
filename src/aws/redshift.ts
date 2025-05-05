@@ -583,7 +583,7 @@ const completionSpec: Fig.Spec = {
     {
       name: "create-cluster",
       description:
-        "Creates a new cluster with the specified parameters. To create a cluster in Virtual Private Cloud (VPC), you must provide a cluster subnet group name. The cluster subnet group identifies the subnets of your VPC that Amazon Redshift uses when creating the cluster. For more information about managing clusters, go to Amazon Redshift Clusters in the Amazon Redshift Cluster Management Guide",
+        "Creates a new cluster with the specified parameters. To create a cluster in Virtual Private Cloud (VPC), you must provide a cluster subnet group name. The cluster subnet group identifies the subnets of your VPC that Amazon Redshift uses when creating the cluster. For more information about managing clusters, go to Amazon Redshift Clusters in the Amazon Redshift Cluster Management Guide. VPC Block Public Access (BPA) enables you to block resources in VPCs and subnets that you own in a Region from reaching or being reached from the internet through internet gateways and egress-only internet gateways. If a subnet group for a provisioned cluster is in an account with VPC BPA turned on, the following capabilities are blocked:   Creating a public cluster   Restoring a public cluster   Modifying a private cluster to be public   Adding a subnet with VPC BPA turned on to the subnet group when there's at least one public cluster within the group   For more information about VPC BPA, see Block public access to VPCs and subnets in the Amazon VPC User Guide",
       options: [
         {
           name: "--db-name",
@@ -612,7 +612,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--node-type",
           description:
-            "The node type to be provisioned for the cluster. For information about node types, go to  Working with Clusters in the Amazon Redshift Cluster Management Guide.  Valid Values: dc2.large | dc2.8xlarge | ra3.xlplus | ra3.4xlarge | ra3.16xlarge",
+            "The node type to be provisioned for the cluster. For information about node types, go to  Working with Clusters in the Amazon Redshift Cluster Management Guide.  Valid Values: dc2.large | dc2.8xlarge | ra3.large | ra3.xlplus | ra3.4xlarge | ra3.16xlarge",
           args: {
             name: "string",
           },
@@ -1429,6 +1429,83 @@ const completionSpec: Fig.Spec = {
           description: "A list of tag instances",
           args: {
             name: "list",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "create-integration",
+      description:
+        "Creates a zero-ETL integration or S3 event integration with Amazon Redshift",
+      options: [
+        {
+          name: "--source-arn",
+          description:
+            "The Amazon Resource Name (ARN) of the database to use as the source for replication",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--target-arn",
+          description:
+            "The Amazon Resource Name (ARN) of the Amazon Redshift data warehouse to use as the target for replication",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--integration-name",
+          description: "The name of the integration",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--kms-key-id",
+          description:
+            "An Key Management Service (KMS) key identifier for the key to use to encrypt the integration. If you don't specify an encryption key, the default Amazon Web Services owned key is used",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--tag-list",
+          description: "A list of tags",
+          args: {
+            name: "list",
+          },
+        },
+        {
+          name: "--additional-encryption-context",
+          description:
+            "An optional set of non-secret key\u2013value pairs that contains additional contextual information about the data. For more information, see Encryption context in the Amazon Web Services Key Management Service Developer Guide. You can only include this parameter if you specify the KMSKeyId parameter",
+          args: {
+            name: "map",
+          },
+        },
+        {
+          name: "--description",
+          description: "A description of the integration",
+          args: {
+            name: "string",
           },
         },
         {
@@ -2277,6 +2354,37 @@ const completionSpec: Fig.Spec = {
       ],
     },
     {
+      name: "delete-integration",
+      description:
+        "Deletes a zero-ETL integration or S3 event integration with Amazon Redshift",
+      options: [
+        {
+          name: "--integration-arn",
+          description: "The unique identifier of the integration to delete",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "delete-partner",
       description:
         "Deletes a partner integration from a cluster. Data can still flow to the cluster until the integration is deleted at the partner's website",
@@ -2532,6 +2640,46 @@ const completionSpec: Fig.Spec = {
           description: "The identifier of the usage limit to delete",
           args: {
             name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "deregister-namespace",
+      description:
+        "Deregisters a cluster or serverless namespace from the Amazon Web Services Glue Data Catalog",
+      options: [
+        {
+          name: "--namespace-identifier",
+          description:
+            "The unique identifier of the cluster or serverless namespace that you want to deregister",
+          args: {
+            name: "structure",
+          },
+        },
+        {
+          name: "--consumer-identifiers",
+          description:
+            "An array containing the ID of the consumer account that you want to deregister the cluster or serverless namespace from",
+          args: {
+            name: "list",
           },
         },
         {
@@ -4462,6 +4610,85 @@ const completionSpec: Fig.Spec = {
       ],
     },
     {
+      name: "describe-integrations",
+      description:
+        "Describes one or more zero-ETL or S3 event integrations with Amazon Redshift",
+      options: [
+        {
+          name: "--integration-arn",
+          description: "The unique identifier of the integration",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--max-records",
+          description:
+            "The maximum number of response records to return in each call. If the number of remaining response records exceeds the specified MaxRecords value, a value is returned in a marker field of the response. You can retrieve the next set of records by retrying the command with the returned marker value.  Default: 100  Constraints: minimum 20, maximum 100",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--marker",
+          description:
+            "An optional pagination token provided by a previous DescribeIntegrations request. If this parameter is specified, the response includes only records beyond the marker, up to the value specified by MaxRecords",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--filters",
+          description:
+            "A filter that specifies one or more resources to return",
+          args: {
+            name: "list",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--starting-token",
+          description:
+            "A token to specify where to start paginating.  This is the\nNextToken from a previously truncated response.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--page-size",
+          description:
+            "The size of each page to get in the AWS service call.  This\ndoes not affect the number of items returned in the command's\noutput.  Setting a smaller page size results in more calls to\nthe AWS service, retrieving fewer items in each call.  This can\nhelp prevent the AWS service calls from timing out.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--max-items",
+          description:
+            "The total number of items to return in the command's output.\nIf the total number of items available is more than the value\nspecified, a NextToken is provided in the command's\noutput.  To resume pagination, provide the\nNextToken value in the starting-token\nargument of a subsequent command.  Do not use the\nNextToken response element directly outside of the\nAWS CLI.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "describe-logging-status",
       description:
         "Describes whether information, such as queries and connection attempts, is being logged for the specified Amazon Redshift cluster",
@@ -5474,7 +5701,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--resource-type",
           description:
-            "The type of resource with which you want to view tags. Valid resource types are:    Cluster   CIDR/IP   EC2 security group   Snapshot   Cluster security group   Subnet group   HSM connection   HSM certificate   Parameter group   Snapshot copy grant   For more information about Amazon Redshift resource types and constructing ARNs, go to Specifying Policy Elements: Actions, Effects, Resources, and Principals in the Amazon Redshift Cluster Management Guide",
+            "The type of resource with which you want to view tags. Valid resource types are:    Cluster   CIDR/IP   EC2 security group   Snapshot   Cluster security group   Subnet group   HSM connection   HSM certificate   Parameter group   Snapshot copy grant   Integration (zero-ETL integration or S3 event integration)  To describe the tags associated with an integration, don't specify ResourceType, instead specify the ResourceName of the integration.    For more information about Amazon Redshift resource types and constructing ARNs, go to Specifying Policy Elements: Actions, Effects, Resources, and Principals in the Amazon Redshift Cluster Management Guide",
           args: {
             name: "string",
           },
@@ -5803,7 +6030,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--s3-key-prefix",
           description:
-            "The prefix applied to the log file names. Constraints:   Cannot exceed 512 characters   Cannot contain spaces( ), double quotes (\"), single quotes ('), a backslash (\\), or control characters. The hexadecimal codes for invalid characters are:    x00 to x20   x22   x27   x5c   x7f or larger",
+            "The prefix applied to the log file names. Valid characters are any letter from any language, any whitespace character, any numeric character, and the following characters: underscore (_), period (.), colon (:), slash (/), equal (=), plus (+), backslash (\\), hyphen (-), at symbol (@)",
           args: {
             name: "string",
           },
@@ -6427,7 +6654,7 @@ const completionSpec: Fig.Spec = {
     {
       name: "modify-cluster",
       description:
-        "Modifies the settings for a cluster. You can also change node type and the number of nodes to scale up or down the cluster. When resizing a cluster, you must specify both the number of nodes and the node type even if one of the parameters does not change. You can add another security or parameter group, or change the admin user password. Resetting a cluster password or modifying the security groups associated with a cluster do not need a reboot. However, modifying a parameter group requires a reboot for parameters to take effect. For more information about managing clusters, go to Amazon Redshift Clusters in the Amazon Redshift Cluster Management Guide",
+        "Modifies the settings for a cluster. You can also change node type and the number of nodes to scale up or down the cluster. When resizing a cluster, you must specify both the number of nodes and the node type even if one of the parameters does not change. You can add another security or parameter group, or change the admin user password. Resetting a cluster password or modifying the security groups associated with a cluster do not need a reboot. However, modifying a parameter group requires a reboot for parameters to take effect. For more information about managing clusters, go to Amazon Redshift Clusters in the Amazon Redshift Cluster Management Guide. VPC Block Public Access (BPA) enables you to block resources in VPCs and subnets that you own in a Region from reaching or being reached from the internet through internet gateways and egress-only internet gateways. If a subnet group for a provisioned cluster is in an account with VPC BPA turned on, the following capabilities are blocked:   Creating a public cluster   Restoring a public cluster   Modifying a private cluster to be public   Adding a subnet with VPC BPA turned on to the subnet group when there's at least one public cluster within the group   For more information about VPC BPA, see Block public access to VPCs and subnets in the Amazon VPC User Guide",
       options: [
         {
           name: "--cluster-identifier",
@@ -6448,7 +6675,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--node-type",
           description:
-            "The new node type of the cluster. If you specify a new node type, you must also specify the number of nodes parameter.  For more information about resizing clusters, go to Resizing Clusters in Amazon Redshift in the Amazon Redshift Cluster Management Guide. Valid Values: dc2.large | dc2.8xlarge | ra3.xlplus | ra3.4xlarge | ra3.16xlarge",
+            "The new node type of the cluster. If you specify a new node type, you must also specify the number of nodes parameter.  For more information about resizing clusters, go to Resizing Clusters in Amazon Redshift in the Amazon Redshift Cluster Management Guide. Valid Values: dc2.large | dc2.8xlarge | ra3.large | ra3.xlplus | ra3.4xlarge | ra3.16xlarge",
           args: {
             name: "string",
           },
@@ -7003,7 +7230,7 @@ const completionSpec: Fig.Spec = {
     {
       name: "modify-cluster-subnet-group",
       description:
-        "Modifies a cluster subnet group to include the specified list of VPC subnets. The operation replaces the existing list of subnets with the new list of subnets",
+        "Modifies a cluster subnet group to include the specified list of VPC subnets. The operation replaces the existing list of subnets with the new list of subnets. VPC Block Public Access (BPA) enables you to block resources in VPCs and subnets that you own in a Region from reaching or being reached from the internet through internet gateways and egress-only internet gateways. If a subnet group for a provisioned cluster is in an account with VPC BPA turned on, the following capabilities are blocked:   Creating a public cluster   Restoring a public cluster   Modifying a private cluster to be public   Adding a subnet with VPC BPA turned on to the subnet group when there's at least one public cluster within the group   For more information about VPC BPA, see Block public access to VPCs and subnets in the Amazon VPC User Guide",
       options: [
         {
           name: "--cluster-subnet-group-name",
@@ -7194,6 +7421,51 @@ const completionSpec: Fig.Spec = {
           name: "--no-enabled",
           description:
             "A Boolean value indicating if the subscription is enabled. true indicates the subscription is enabled",
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "modify-integration",
+      description:
+        "Modifies a zero-ETL integration or S3 event integration with Amazon Redshift",
+      options: [
+        {
+          name: "--integration-arn",
+          description: "The unique identifier of the integration to modify",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--description",
+          description: "A new description for the integration",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--integration-name",
+          description: "A new name for the integration",
+          args: {
+            name: "string",
+          },
         },
         {
           name: "--cli-input-json",
@@ -7650,6 +7922,46 @@ const completionSpec: Fig.Spec = {
       ],
     },
     {
+      name: "register-namespace",
+      description:
+        "Registers a cluster or serverless namespace to the Amazon Web Services Glue Data Catalog",
+      options: [
+        {
+          name: "--namespace-identifier",
+          description:
+            "The unique identifier of the cluster or serverless namespace that you want to register",
+          args: {
+            name: "structure",
+          },
+        },
+        {
+          name: "--consumer-identifiers",
+          description:
+            "An array containing the ID of the consumer account that you want to register the namespace to",
+          args: {
+            name: "list",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "reject-data-share",
       description:
         "From a datashare consumer account, rejects the specified datashare",
@@ -7733,7 +8045,7 @@ const completionSpec: Fig.Spec = {
     {
       name: "resize-cluster",
       description:
-        "Changes the size of the cluster. You can change the cluster's type, or change the number or type of nodes. The default behavior is to use the elastic resize method. With an elastic resize, your cluster is available for read and write operations more quickly than with the classic resize method.  Elastic resize operations have the following restrictions:   You can only resize clusters of the following types:   dc2.large   dc2.8xlarge   ra3.xlplus   ra3.4xlarge   ra3.16xlarge     The type of nodes that you add must match the node type for the cluster",
+        "Changes the size of the cluster. You can change the cluster's type, or change the number or type of nodes. The default behavior is to use the elastic resize method. With an elastic resize, your cluster is available for read and write operations more quickly than with the classic resize method.  Elastic resize operations have the following restrictions:   You can only resize clusters of the following types:   dc2.large   dc2.8xlarge   ra3.large   ra3.xlplus   ra3.4xlarge   ra3.16xlarge     The type of nodes that you add must match the node type for the cluster",
       options: [
         {
           name: "--cluster-identifier",
@@ -7811,7 +8123,7 @@ const completionSpec: Fig.Spec = {
     {
       name: "restore-from-cluster-snapshot",
       description:
-        "Creates a new cluster from a snapshot. By default, Amazon Redshift creates the resulting cluster with the same configuration as the original cluster from which the snapshot was created, except that the new cluster is created with the default cluster security and parameter groups. After Amazon Redshift creates the cluster, you can use the ModifyCluster API to associate a different security group and different parameter group with the restored cluster. If you are using a DS node type, you can also choose to change to another DS node type of the same size during restore. If you restore a cluster into a VPC, you must provide a cluster subnet group where you want the cluster restored.  For more information about working with snapshots, go to Amazon Redshift Snapshots in the Amazon Redshift Cluster Management Guide",
+        "Creates a new cluster from a snapshot. By default, Amazon Redshift creates the resulting cluster with the same configuration as the original cluster from which the snapshot was created, except that the new cluster is created with the default cluster security and parameter groups. After Amazon Redshift creates the cluster, you can use the ModifyCluster API to associate a different security group and different parameter group with the restored cluster. If you are using a DS node type, you can also choose to change to another DS node type of the same size during restore. If you restore a cluster into a VPC, you must provide a cluster subnet group where you want the cluster restored. VPC Block Public Access (BPA) enables you to block resources in VPCs and subnets that you own in a Region from reaching or being reached from the internet through internet gateways and egress-only internet gateways. If a subnet group for a provisioned cluster is in an account with VPC BPA turned on, the following capabilities are blocked:   Creating a public cluster   Restoring a public cluster   Modifying a private cluster to be public   Adding a subnet with VPC BPA turned on to the subnet group when there's at least one public cluster within the group   For more information about VPC BPA, see Block public access to VPCs and subnets in the Amazon VPC User Guide.  For more information about working with snapshots, go to Amazon Redshift Snapshots in the Amazon Redshift Cluster Management Guide",
       options: [
         {
           name: "--cluster-identifier",

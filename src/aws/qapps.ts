@@ -83,6 +83,124 @@ const completionSpec: Fig.Spec = {
       ],
     },
     {
+      name: "batch-create-category",
+      description:
+        "Creates Categories for the Amazon Q Business application environment instance. Web experience users use Categories to tag and filter library items. For more information, see Custom labels for Amazon Q Apps",
+      options: [
+        {
+          name: "--instance-id",
+          description:
+            "The unique identifier of the Amazon Q Business application environment instance",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--categories",
+          description: "The list of category objects to be created",
+          args: {
+            name: "list",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "batch-delete-category",
+      description:
+        "Deletes Categories for the Amazon Q Business application environment instance. Web experience users use Categories to tag and filter library items. For more information, see Custom labels for Amazon Q Apps",
+      options: [
+        {
+          name: "--instance-id",
+          description:
+            "The unique identifier of the Amazon Q Business application environment instance",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--categories",
+          description: "The list of IDs of the categories to be deleted",
+          args: {
+            name: "list",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "batch-update-category",
+      description:
+        "Updates Categories for the Amazon Q Business application environment instance. Web experience users use Categories to tag and filter library items. For more information, see Custom labels for Amazon Q Apps",
+      options: [
+        {
+          name: "--instance-id",
+          description:
+            "The unique identifier of the Amazon Q Business application environment instance",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--categories",
+          description:
+            "The list of categories to be updated with their new values",
+          args: {
+            name: "list",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "create-library-item",
       description:
         "Creates a new library item for an Amazon Q App, allowing it to be discovered and used by other allowed users",
@@ -117,6 +235,85 @@ const completionSpec: Fig.Spec = {
             "The categories to associate with the library item for easier discovery",
           args: {
             name: "list",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "create-presigned-url",
+      description:
+        "Creates a presigned URL for an S3 POST operation to upload a file. You can use this URL to set a default file for a FileUploadCard in a Q App definition or to provide a file for a single Q App run. The scope parameter determines how the file will be used, either at the app definition level or the app session level",
+      options: [
+        {
+          name: "--instance-id",
+          description:
+            "The unique identifier of the Amazon Q Business application environment instance",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--card-id",
+          description:
+            "The unique identifier of the card the file is associated with",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--app-id",
+          description:
+            "The unique identifier of the Q App the file is associated with",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--file-contents-sha256",
+          description:
+            "The Base64-encoded SHA-256 digest of the contents of the file to be uploaded",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--file-name",
+          description: "The name of the file to be uploaded",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--scope",
+          description:
+            "Whether the file is associated with a Q App definition or a specific Q App session",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--session-id",
+          description:
+            "The unique identifier of the Q App session the file is associated with, if applicable",
+          args: {
+            name: "string",
           },
         },
         {
@@ -278,6 +475,46 @@ const completionSpec: Fig.Spec = {
       ],
     },
     {
+      name: "describe-q-app-permissions",
+      description:
+        "Describes read permissions for a Amazon Q App in Amazon Q Business application environment instance",
+      options: [
+        {
+          name: "--instance-id",
+          description:
+            "The unique identifier of the Amazon Q Business application environment instance",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--app-id",
+          description:
+            "The unique identifier of the Amazon Q App for which to retrieve permissions",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "disassociate-library-item-review",
       description:
         "Removes a rating or review previously submitted by the user for a library item",
@@ -334,6 +571,46 @@ const completionSpec: Fig.Spec = {
           name: "--app-id",
           description:
             "The unique identifier of the Q App to disassociate from the user",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "export-q-app-session-data",
+      description:
+        "Exports the collected data of a Q App data collection session",
+      options: [
+        {
+          name: "--instance-id",
+          description:
+            "The unique identifier of the Amazon Q Business application environment instance",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--session-id",
+          description:
+            "The unique identifier of the Q App data collection session",
           args: {
             name: "string",
           },
@@ -425,6 +702,13 @@ const completionSpec: Fig.Spec = {
           },
         },
         {
+          name: "--app-version",
+          description: "The version of the Q App",
+          args: {
+            name: "integer",
+          },
+        },
+        {
           name: "--cli-input-json",
           description:
             "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
@@ -483,6 +767,44 @@ const completionSpec: Fig.Spec = {
       ],
     },
     {
+      name: "get-q-app-session-metadata",
+      description: "Retrieves the current configuration of a Q App session",
+      options: [
+        {
+          name: "--instance-id",
+          description:
+            "The unique identifier of the Amazon Q Business application environment instance",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--session-id",
+          description: "The unique identifier of the Q App session",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "import-document",
       description:
         "Uploads a file that can then be used either as a default in a FileUploadCard from Q App definition or as a file that is used inside a single Q App run. The purpose of the document is determined by a scope parameter that indicates whether it is at the app definition level or at the app session level",
@@ -498,7 +820,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--card-id",
           description:
-            "The unique identifier of the card the file is associated with, if applicable",
+            "The unique identifier of the card the file is associated with",
           args: {
             name: "string",
           },
@@ -528,7 +850,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--scope",
           description:
-            "Whether the file is associated with an Q App definition or a specific Q App session",
+            "Whether the file is associated with a Q App definition or a specific Q App session",
           args: {
             name: "string",
           },
@@ -537,6 +859,38 @@ const completionSpec: Fig.Spec = {
           name: "--session-id",
           description:
             "The unique identifier of the Q App session the file is associated with, if applicable",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "list-categories",
+      description:
+        "Lists the categories of a Amazon Q Business application environment instance. For more information, see Custom labels for Amazon Q Apps",
+      options: [
+        {
+          name: "--instance-id",
+          description:
+            "The unique identifier of the Amazon Q Business application environment instance",
           args: {
             name: "string",
           },
@@ -625,6 +979,46 @@ const completionSpec: Fig.Spec = {
             "The total number of items to return in the command's output.\nIf the total number of items available is more than the value\nspecified, a NextToken is provided in the command's\noutput.  To resume pagination, provide the\nNextToken value in the starting-token\nargument of a subsequent command.  Do not use the\nNextToken response element directly outside of the\nAWS CLI.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
           args: {
             name: "integer",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "list-q-app-session-data",
+      description:
+        "Lists the collected data of a Q App data collection session",
+      options: [
+        {
+          name: "--instance-id",
+          description:
+            "The unique identifier of the Amazon Q Business application environment instance",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--session-id",
+          description:
+            "The unique identifier of the Q App data collection session",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
           },
         },
         {
@@ -813,6 +1207,13 @@ const completionSpec: Fig.Spec = {
             "Optional initial input values to provide for the Q App session",
           args: {
             name: "list",
+          },
+        },
+        {
+          name: "--session-id",
+          description: "The unique identifier of the a Q App session",
+          args: {
+            name: "string",
           },
         },
         {
@@ -1117,6 +1518,60 @@ const completionSpec: Fig.Spec = {
       ],
     },
     {
+      name: "update-q-app-permissions",
+      description:
+        "Updates read permissions for a Amazon Q App in Amazon Q Business application environment instance",
+      options: [
+        {
+          name: "--instance-id",
+          description:
+            "The unique identifier of the Amazon Q Business application environment instance",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--app-id",
+          description:
+            "The unique identifier of the Amazon Q App for which permissions are being updated",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--grant-permissions",
+          description: "The list of permissions to grant for the Amazon Q App",
+          args: {
+            name: "list",
+          },
+        },
+        {
+          name: "--revoke-permissions",
+          description: "The list of permissions to revoke for the Amazon Q App",
+          args: {
+            name: "list",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "update-q-app-session",
       description:
         "Updates the session for a given Q App sessionId. This is only valid when at least one card of the session is in the WAITING state. Data for each WAITING card can be provided as input. If inputs are not provided, the call will be accepted but session will not move forward. Inputs for cards that are not in the WAITING status will be ignored",
@@ -1143,6 +1598,61 @@ const completionSpec: Fig.Spec = {
             "The input values to provide for the current state of the Q App session",
           args: {
             name: "list",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "update-q-app-session-metadata",
+      description:
+        "Updates the configuration metadata of a session for a given Q App sessionId",
+      options: [
+        {
+          name: "--instance-id",
+          description:
+            "The unique identifier of the Amazon Q Business application environment instance",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--session-id",
+          description:
+            "The unique identifier of the Q App session to update configuration for",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--session-name",
+          description: "The new name for the Q App session",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--sharing-configuration",
+          description:
+            "The new sharing configuration for the Q App data collection session",
+          args: {
+            name: "structure",
           },
         },
         {

@@ -4,6 +4,97 @@ const completionSpec: Fig.Spec = {
     "AWS re:Post Private is a private version of AWS re:Post for enterprises with Enterprise Support or Enterprise On-Ramp Support plans. It provides access to knowledge and experts to accelerate cloud adoption and increase developer productivity. With your organization-specific private re:Post, you can build an organization-specific developer community that drives efficiencies at scale and provides access to valuable knowledge resources. Additionally, re:Post Private centralizes trusted AWS technical content and offers private discussion forums to improve how your teams collaborate internally and with AWS to remove technical obstacles, accelerate innovation, and scale more efficiently in the cloud",
   subcommands: [
     {
+      name: "batch-add-role",
+      description: "Add role to multiple users or groups in a private re:Post",
+      options: [
+        {
+          name: "--accessor-ids",
+          description:
+            "The user or group accessor identifiers to add the role to",
+          args: {
+            name: "list",
+          },
+        },
+        {
+          name: "--role",
+          description: "The role to add to the users or groups",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--space-id",
+          description: "The unique ID of the private re:Post",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "batch-remove-role",
+      description:
+        "Remove role from multiple users or groups in a private re:Post",
+      options: [
+        {
+          name: "--accessor-ids",
+          description:
+            "The user or group accessor identifiers to remove the role from",
+          args: {
+            name: "list",
+          },
+        },
+        {
+          name: "--role",
+          description: "The role to remove from the users or groups",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--space-id",
+          description: "The unique ID of the private re:Post",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "create-space",
       description: "Creates an AWS re:Post Private private re:Post",
       options: [

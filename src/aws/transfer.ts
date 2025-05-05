@@ -1,7 +1,7 @@
 const completionSpec: Fig.Spec = {
   name: "transfer",
   description:
-    "Transfer Family is a fully managed service that enables the transfer of files over the File Transfer Protocol (FTP), File Transfer Protocol over SSL (FTPS), or Secure Shell (SSH) File Transfer Protocol (SFTP) directly into and out of Amazon Simple Storage Service (Amazon S3) or Amazon EFS. Additionally, you can use Applicability Statement 2 (AS2) to transfer files into and out of Amazon S3. Amazon Web Services helps you seamlessly migrate your file transfer workflows to Transfer Family by integrating with existing authentication systems, and providing DNS routing with Amazon Route 53 so nothing changes for your customers and partners, or their applications. With your data in Amazon S3, you can use it with Amazon Web Services for processing, analytics, machine learning, and archiving. Getting started with Transfer Family is easy since there is no infrastructure to buy and set up",
+    "Transfer Family is a fully managed service that enables the transfer of files over the File Transfer Protocol (FTP), File Transfer Protocol over SSL (FTPS), or Secure Shell (SSH) File Transfer Protocol (SFTP) directly into and out of Amazon Simple Storage Service (Amazon S3) or Amazon EFS. Additionally, you can use Applicability Statement 2 (AS2) to transfer files into and out of Amazon S3. Amazon Web Services helps you seamlessly migrate your file transfer workflows to Transfer Family by integrating with existing authentication systems, and providing DNS routing with Amazon Route 53 so nothing changes for your customers and partners, or their applications. With your data in Amazon S3, you can use it with Amazon Web Services services for processing, analytics, machine learning, and archiving. Getting started with Transfer Family is easy since there is no infrastructure to buy and set up",
   subcommands: [
     {
       name: "create-access",
@@ -129,7 +129,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--base-directory",
           description:
-            "The landing directory (folder) for files transferred by using the AS2 protocol. A BaseDirectory example is /DOC-EXAMPLE-BUCKET/home/mydirectory",
+            "The landing directory (folder) for files transferred by using the AS2 protocol. A BaseDirectory example is /amzn-s3-demo-bucket/home/mydirectory",
           args: {
             name: "string",
           },
@@ -360,7 +360,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--identity-provider-details",
           description:
-            "Required when IdentityProviderType is set to AWS_DIRECTORY_SERVICE, Amazon Web Services_LAMBDA or API_GATEWAY. Accepts an array containing all of the information required to use a directory in AWS_DIRECTORY_SERVICE or invoke a customer-supplied authentication API, including the API Gateway URL. Not required when IdentityProviderType is set to SERVICE_MANAGED",
+            "Required when IdentityProviderType is set to AWS_DIRECTORY_SERVICE, Amazon Web Services_LAMBDA or API_GATEWAY. Accepts an array containing all of the information required to use a directory in AWS_DIRECTORY_SERVICE or invoke a customer-supplied authentication API, including the API Gateway URL. Cannot be specified when IdentityProviderType is set to SERVICE_MANAGED",
           args: {
             name: "structure",
           },
@@ -555,6 +555,62 @@ const completionSpec: Fig.Spec = {
             "A unique string that identifies a user and is associated with a ServerId. This user name must be a minimum of 3 and a maximum of 100 characters long. The following are valid characters: a-z, A-Z, 0-9, underscore '_', hyphen '-', period '.', and at sign '@'. The user name can't start with a hyphen, period, or at sign",
           args: {
             name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "create-web-app",
+      description:
+        "Creates a web app based on specified parameters, and returns the ID for the new web app",
+      options: [
+        {
+          name: "--identity-provider-details",
+          description:
+            "You can provide a structure that contains the details for the identity provider to use with your web app",
+          args: {
+            name: "structure",
+          },
+        },
+        {
+          name: "--access-endpoint",
+          description:
+            "The AccessEndpoint is the URL that you provide to your users for them to interact with the Transfer Family web app. You can specify a custom URL or use the default value",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--web-app-units",
+          description:
+            "A union that contains the value for number of concurrent connections or the user sessions on your web app",
+          args: {
+            name: "structure",
+          },
+        },
+        {
+          name: "--tags",
+          description:
+            "Key-value pairs that can be used to group and search for web apps",
+          args: {
+            name: "list",
           },
         },
         {
@@ -964,6 +1020,69 @@ const completionSpec: Fig.Spec = {
       ],
     },
     {
+      name: "delete-web-app",
+      description: "Deletes the specified web app",
+      options: [
+        {
+          name: "--web-app-id",
+          description:
+            "Provide the unique identifier for the web app that you are deleting",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "delete-web-app-customization",
+      description:
+        "Deletes the WebAppCustomization object that corresponds to the web app ID specified",
+      options: [
+        {
+          name: "--web-app-id",
+          description:
+            "Provide the unique identifier for the web app that contains the customizations that you are deleting",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "delete-workflow",
       description: "Deletes the specified workflow",
       options: [
@@ -1348,6 +1467,67 @@ const completionSpec: Fig.Spec = {
       ],
     },
     {
+      name: "describe-web-app",
+      description: "Describes the web app that's identified by WebAppId",
+      options: [
+        {
+          name: "--web-app-id",
+          description: "Provide the unique identifier for the web app",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "describe-web-app-customization",
+      description:
+        "Describes the web app customization object that's identified by WebAppId",
+      options: [
+        {
+          name: "--web-app-id",
+          description: "Provide the unique identifier for the web app",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "describe-workflow",
       description: "Describes the specified workflow",
       options: [
@@ -1574,7 +1754,7 @@ const completionSpec: Fig.Spec = {
       options: [
         {
           name: "--max-results",
-          description: "Specifies the maximum number of access SIDs to return",
+          description: "The maximum number of items to return",
           args: {
             name: "integer",
           },
@@ -1645,7 +1825,7 @@ const completionSpec: Fig.Spec = {
       options: [
         {
           name: "--max-results",
-          description: "The maximum number of agreements to return",
+          description: "The maximum number of items to return",
           args: {
             name: "integer",
           },
@@ -1716,7 +1896,7 @@ const completionSpec: Fig.Spec = {
       options: [
         {
           name: "--max-results",
-          description: "The maximum number of certificates to return",
+          description: "The maximum number of items to return",
           args: {
             name: "integer",
           },
@@ -1778,7 +1958,7 @@ const completionSpec: Fig.Spec = {
       options: [
         {
           name: "--max-results",
-          description: "The maximum number of connectors to return",
+          description: "The maximum number of items to return",
           args: {
             name: "integer",
           },
@@ -1841,7 +2021,7 @@ const completionSpec: Fig.Spec = {
       options: [
         {
           name: "--max-results",
-          description: "Specifies the maximum number of executions to return",
+          description: "The maximum number of items to return",
           args: {
             name: "integer",
           },
@@ -1905,13 +2085,93 @@ const completionSpec: Fig.Spec = {
       ],
     },
     {
+      name: "list-file-transfer-results",
+      description:
+        "Returns real-time updates and detailed information on the status of each individual file being transferred in a specific file transfer operation. You specify the file transfer by providing its ConnectorId and its TransferId.  File transfer results are available up to 7 days after an operation has been requested",
+      options: [
+        {
+          name: "--connector-id",
+          description:
+            "A unique identifier for a connector. This value should match the value supplied to the corresponding StartFileTransfer call",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--transfer-id",
+          description:
+            "A unique identifier for a file transfer. This value should match the value supplied to the corresponding StartFileTransfer call",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--next-token",
+          description:
+            "If there are more file details than returned in this call, use this value for a subsequent call to ListFileTransferResults to retrieve them",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--max-results",
+          description:
+            "The maximum number of files to return in a single page. Note that currently you can specify a maximum of 10 file paths in a single StartFileTransfer operation. Thus, the maximum number of file transfer results that can be returned in a single page is 10",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--starting-token",
+          description:
+            "A token to specify where to start paginating.  This is the\nNextToken from a previously truncated response.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--page-size",
+          description:
+            "The size of each page to get in the AWS service call.  This\ndoes not affect the number of items returned in the command's\noutput.  Setting a smaller page size results in more calls to\nthe AWS service, retrieving fewer items in each call.  This can\nhelp prevent the AWS service calls from timing out.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--max-items",
+          description:
+            "The total number of items to return in the command's output.\nIf the total number of items available is more than the value\nspecified, a NextToken is provided in the command's\noutput.  To resume pagination, provide the\nNextToken value in the starting-token\nargument of a subsequent command.  Do not use the\nNextToken response element directly outside of the\nAWS CLI.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "list-host-keys",
       description:
         "Returns a list of host keys for the server that's specified by the ServerId parameter",
       options: [
         {
           name: "--max-results",
-          description: "The maximum number of host keys to return",
+          description: "The maximum number of items to return",
           args: {
             name: "integer",
           },
@@ -1958,7 +2218,7 @@ const completionSpec: Fig.Spec = {
       options: [
         {
           name: "--max-results",
-          description: "The maximum number of profiles to return",
+          description: "The maximum number of items to return",
           args: {
             name: "integer",
           },
@@ -2295,13 +2555,76 @@ const completionSpec: Fig.Spec = {
       ],
     },
     {
+      name: "list-web-apps",
+      description:
+        "Lists all web apps associated with your Amazon Web Services account for your current region",
+      options: [
+        {
+          name: "--max-results",
+          description: "The maximum number of items to return",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--next-token",
+          description:
+            "Returns the NextToken parameter in the output. You can then pass the NextToken parameter in a subsequent command to continue listing additional web apps",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--starting-token",
+          description:
+            "A token to specify where to start paginating.  This is the\nNextToken from a previously truncated response.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--page-size",
+          description:
+            "The size of each page to get in the AWS service call.  This\ndoes not affect the number of items returned in the command's\noutput.  Setting a smaller page size results in more calls to\nthe AWS service, retrieving fewer items in each call.  This can\nhelp prevent the AWS service calls from timing out.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--max-items",
+          description:
+            "The total number of items to return in the command's output.\nIf the total number of items available is more than the value\nspecified, a NextToken is provided in the command's\noutput.  To resume pagination, provide the\nNextToken value in the starting-token\nargument of a subsequent command.  Do not use the\nNextToken response element directly outside of the\nAWS CLI.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "list-workflows",
       description:
         "Lists all workflows associated with your Amazon Web Services account for your current region",
       options: [
         {
           name: "--max-results",
-          description: "Specifies the maximum number of workflows to return",
+          description: "The maximum number of items to return",
           args: {
             name: "integer",
           },
@@ -2481,7 +2804,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--send-file-paths",
           description:
-            "One or more source paths for the Amazon S3 storage. Each string represents a source file path for one outbound file transfer. For example,  DOC-EXAMPLE-BUCKET/myfile.txt .  Replace  DOC-EXAMPLE-BUCKET  with one of your actual buckets",
+            "One or more source paths for the Amazon S3 storage. Each string represents a source file path for one outbound file transfer. For example,  amzn-s3-demo-bucket/myfile.txt .  Replace  amzn-s3-demo-bucket  with one of your actual buckets",
           args: {
             name: "list",
           },
@@ -2909,7 +3232,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--base-directory",
           description:
-            "To change the landing directory (folder) for files that are transferred, provide the bucket folder that you want to use; for example, /DOC-EXAMPLE-BUCKET/home/mydirectory",
+            "To change the landing directory (folder) for files that are transferred, provide the bucket folder that you want to use; for example, /amzn-s3-demo-bucket/home/mydirectory",
           args: {
             name: "string",
           },
@@ -3191,7 +3514,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--endpoint-type",
           description:
-            "The type of endpoint that you want your server to use. You can choose to make your server's endpoint publicly accessible (PUBLIC) or host it inside your VPC. With an endpoint that is hosted in a VPC, you can restrict access to your server and resources only within your VPC or choose to make it internet facing by attaching Elastic IP addresses directly to it.   After May 19, 2021, you won't be able to create a server using EndpointType=VPC_ENDPOINT in your Amazon Web Servicesaccount if your account hasn't already done so before May 19, 2021. If you have already created servers with EndpointType=VPC_ENDPOINT in your Amazon Web Servicesaccount on or before May 19, 2021, you will not be affected. After this date, use EndpointType=VPC. For more information, see https://docs.aws.amazon.com/transfer/latest/userguide/create-server-in-vpc.html#deprecate-vpc-endpoint. It is recommended that you use VPC as the EndpointType. With this endpoint type, you have the option to directly associate up to three Elastic IPv4 addresses (BYO IP included) with your server's endpoint and use VPC security groups to restrict traffic by the client's public IP address. This is not possible with EndpointType set to VPC_ENDPOINT",
+            "The type of endpoint that you want your server to use. You can choose to make your server's endpoint publicly accessible (PUBLIC) or host it inside your VPC. With an endpoint that is hosted in a VPC, you can restrict access to your server and resources only within your VPC or choose to make it internet facing by attaching Elastic IP addresses directly to it.   After May 19, 2021, you won't be able to create a server using EndpointType=VPC_ENDPOINT in your Amazon Web Services account if your account hasn't already done so before May 19, 2021. If you have already created servers with EndpointType=VPC_ENDPOINT in your Amazon Web Services account on or before May 19, 2021, you will not be affected. After this date, use EndpointType=VPC. For more information, see https://docs.aws.amazon.com/transfer/latest/userguide/create-server-in-vpc.html#deprecate-vpc-endpoint. It is recommended that you use VPC as the EndpointType. With this endpoint type, you have the option to directly associate up to three Elastic IPv4 addresses (BYO IP included) with your server's endpoint and use VPC security groups to restrict traffic by the client's public IP address. This is not possible with EndpointType set to VPC_ENDPOINT",
           args: {
             name: "string",
           },
@@ -3370,6 +3693,115 @@ const completionSpec: Fig.Spec = {
             "A unique string that identifies a user and is associated with a server as specified by the ServerId. This user name must be a minimum of 3 and a maximum of 100 characters long. The following are valid characters: a-z, A-Z, 0-9, underscore '_', hyphen '-', period '.', and at sign '@'. The user name can't start with a hyphen, period, or at sign",
           args: {
             name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "update-web-app",
+      description:
+        "Assigns new properties to a web app. You can modify the access point, identity provider details, and the web app units",
+      options: [
+        {
+          name: "--web-app-id",
+          description:
+            "Provide the identifier of the web app that you are updating",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--identity-provider-details",
+          description:
+            "Provide updated identity provider values in a WebAppIdentityProviderDetails object",
+          args: {
+            name: "structure",
+          },
+        },
+        {
+          name: "--access-endpoint",
+          description:
+            "The AccessEndpoint is the URL that you provide to your users for them to interact with the Transfer Family web app. You can specify a custom URL or use the default value",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--web-app-units",
+          description:
+            "A union that contains the value for number of concurrent connections or the user sessions on your web app",
+          args: {
+            name: "structure",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "update-web-app-customization",
+      description:
+        "Assigns new customization properties to a web app. You can modify the icon file, logo file, and title",
+      options: [
+        {
+          name: "--web-app-id",
+          description:
+            "Provide the identifier of the web app that you are updating",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--title",
+          description: "Provide an updated title",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--logo-file",
+          description: "Specify logo file data string (in base64 encoding)",
+          args: {
+            name: "blob",
+          },
+        },
+        {
+          name: "--favicon-file",
+          description: "Specify icon file data string (in base64 encoding)",
+          args: {
+            name: "blob",
           },
         },
         {

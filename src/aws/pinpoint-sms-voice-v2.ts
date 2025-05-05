@@ -484,12 +484,12 @@ const completionSpec: Fig.Spec = {
     {
       name: "create-registration-attachment",
       description:
-        "Create a new registration attachment to use for uploading a file or a URL to a file. The maximum file size is 1MiB and valid file extensions are PDF, JPEG and PNG. For example, many sender ID registrations require a signed \u201cletter of authorization\u201d (LOA) to be submitted",
+        "Create a new registration attachment to use for uploading a file or a URL to a file. The maximum file size is 500KB and valid file extensions are PDF, JPEG and PNG. For example, many sender ID registrations require a signed \u201cletter of authorization\u201d (LOA) to be submitted. Use either AttachmentUrl or AttachmentBody to upload your attachment. If both are specified then an exception is returned",
       options: [
         {
           name: "--attachment-body",
           description:
-            "The registration file to upload. The maximum file size is 1MiB and valid file extensions are PDF, JPEG and PNG",
+            "The registration file to upload. The maximum file size is 500KB and valid file extensions are PDF, JPEG and PNG",
           args: {
             name: "blob",
           },
@@ -497,7 +497,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--attachment-url",
           description:
-            "A URL to the required registration file. For example, you can provide the S3 object URL",
+            "Registration files have to be stored in an Amazon S3 bucket. The URI to use when sending is in the format s3://BucketName/FileName",
           args: {
             name: "string",
           },
@@ -948,6 +948,44 @@ const completionSpec: Fig.Spec = {
         {
           name: "--protect-configuration-id",
           description: "The unique identifier for the protect configuration",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "delete-protect-configuration-rule-set-number-override",
+      description:
+        "Permanently delete the protect configuration rule set number override",
+      options: [
+        {
+          name: "--protect-configuration-id",
+          description: "The unique identifier for the protect configuration",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--destination-phone-number",
+          description: "The destination phone number in E.164 format",
           args: {
             name: "string",
           },
@@ -1558,7 +1596,7 @@ const completionSpec: Fig.Spec = {
     {
       name: "describe-opted-out-numbers",
       description:
-        "Describes the specified opted out destination numbers or all opted out destination numbers in an opt-out list. If you specify opted out numbers, the output includes information for only the specified opted out numbers. If you specify filters, the output includes information for only those opted out numbers that meet the filter criteria. If you don't specify opted out numbers or filters, the output includes information for all opted out destination numbers in your opt-out list. If you specify an opted out number that isn't valid, an error is returned",
+        "Describes the specified opted out destination numbers or all opted out destination numbers in an opt-out list. If you specify opted out numbers, the output includes information for only the specified opted out numbers. If you specify filters, the output includes information for only those opted out numbers that meet the filter criteria. If you don't specify opted out numbers or filters, the output includes information for all opted out destination numbers in your opt-out list. If you specify an opted out number that isn't valid, an exception is returned",
       options: [
         {
           name: "--opt-out-list-name",
@@ -1571,7 +1609,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--opted-out-numbers",
           description:
-            "An array of phone numbers to search for in the OptOutList",
+            "An array of phone numbers to search for in the OptOutList. If you specify an opted out number that isn't valid, an exception is returned",
           args: {
             name: "list",
           },
@@ -2631,11 +2669,11 @@ const completionSpec: Fig.Spec = {
     },
     {
       name: "describe-verified-destination-numbers",
-      description: "Retrieves the specified verified destiona numbers",
+      description: "Retrieves the specified verified destination numbers",
       options: [
         {
           name: "--verified-destination-number-ids",
-          description: "An array of VerifiedDestinationNumberid to retreive",
+          description: "An array of VerifiedDestinationNumberid to retrieve",
           args: {
             name: "list",
           },
@@ -2991,9 +3029,88 @@ const completionSpec: Fig.Spec = {
       ],
     },
     {
+      name: "list-protect-configuration-rule-set-number-overrides",
+      description:
+        "Retrieve all of the protect configuration rule set number overrides that match the filters",
+      options: [
+        {
+          name: "--protect-configuration-id",
+          description: "The unique identifier for the protect configuration",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--filters",
+          description:
+            "An array of ProtectConfigurationRuleSetNumberOverrideFilterItem objects to filter the results",
+          args: {
+            name: "list",
+          },
+        },
+        {
+          name: "--next-token",
+          description:
+            "The token to be used for the next set of paginated results. You don't need to supply a value for this field in the initial request",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--max-results",
+          description:
+            "The maximum number of results to return per each request",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--starting-token",
+          description:
+            "A token to specify where to start paginating.  This is the\nNextToken from a previously truncated response.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--page-size",
+          description:
+            "The size of each page to get in the AWS service call.  This\ndoes not affect the number of items returned in the command's\noutput.  Setting a smaller page size results in more calls to\nthe AWS service, retrieving fewer items in each call.  This can\nhelp prevent the AWS service calls from timing out.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--max-items",
+          description:
+            "The total number of items to return in the command's output.\nIf the total number of items available is more than the value\nspecified, a NextToken is provided in the command's\noutput.  To resume pagination, provide the\nNextToken value in the starting-token\nargument of a subsequent command.  Do not use the\nNextToken response element directly outside of the\nAWS CLI.\nFor usage examples, see Pagination in the AWS Command Line Interface User\nGuide",
+          args: {
+            name: "integer",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "list-registration-associations",
       description:
-        "Retreive all of the origination identies that are associated with a registration",
+        "Retrieve all of the origination identities that are associated with a registration",
       options: [
         {
           name: "--registration-id",
@@ -3155,6 +3272,45 @@ const completionSpec: Fig.Spec = {
       ],
     },
     {
+      name: "put-message-feedback",
+      description:
+        "Set the MessageFeedbackStatus as RECEIVED or FAILED for the passed in MessageId.  If you use message feedback then you must update message feedback record. When you receive a signal that a user has received the message you must use PutMessageFeedback to set the message feedback record as RECEIVED; Otherwise, an hour after the message feedback record is set to FAILED",
+      options: [
+        {
+          name: "--message-id",
+          description: "The unique identifier for the message",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--message-feedback-status",
+          description:
+            "Set the message feedback to be either RECEIVED or FAILED",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "put-opted-out-number",
       description:
         "Creates an opted out destination phone number in the opt-out list. If the destination phone number isn't valid or if the specified opt-out list doesn't exist, an error is returned",
@@ -3173,6 +3329,68 @@ const completionSpec: Fig.Spec = {
             "The phone number to add to the OptOutList in E.164 format",
           args: {
             name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "put-protect-configuration-rule-set-number-override",
+      description:
+        "Create or update a RuleSetNumberOverride and associate it with a protect configuration",
+      options: [
+        {
+          name: "--client-token",
+          description:
+            "Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. If you don't specify a client token, a randomly generated token is used for the request to ensure idempotency",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--protect-configuration-id",
+          description: "The unique identifier for the protect configuration",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--destination-phone-number",
+          description: "The destination phone number in E.164 format",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--action",
+          description:
+            "The action for the rule to either block or allow messages to the destination phone number",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--expiration-timestamp",
+          description:
+            "The time the rule will expire at. If ExpirationTimestamp is not set then the rule does not expire",
+          args: {
+            name: "timestamp",
           },
         },
         {
@@ -3672,7 +3890,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--time-to-live",
           description:
-            "How long the text message is valid for. By default this is 72 hours",
+            "How long the media message is valid for. By default this is 72 hours",
           args: {
             name: "integer",
           },
@@ -3702,6 +3920,16 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "string",
           },
+        },
+        {
+          name: "--message-feedback-enabled",
+          description:
+            "Set to true to enable message feedback for the message. When a user receives the message you need to update the message status using PutMessageFeedback",
+        },
+        {
+          name: "--no-message-feedback-enabled",
+          description:
+            "Set to true to enable message feedback for the message. When a user receives the message you need to update the message status using PutMessageFeedback",
         },
         {
           name: "--cli-input-json",
@@ -3823,6 +4051,16 @@ const completionSpec: Fig.Spec = {
           },
         },
         {
+          name: "--message-feedback-enabled",
+          description:
+            "Set to true to enable message feedback for the message. When a user receives the message you need to update the message status using PutMessageFeedback",
+        },
+        {
+          name: "--no-message-feedback-enabled",
+          description:
+            "Set to true to enable message feedback for the message. When a user receives the message you need to update the message status using PutMessageFeedback",
+        },
+        {
           name: "--cli-input-json",
           description:
             "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
@@ -3934,6 +4172,16 @@ const completionSpec: Fig.Spec = {
           },
         },
         {
+          name: "--message-feedback-enabled",
+          description:
+            "Set to true to enable message feedback for the message. When a user receives the message you need to update the message status using PutMessageFeedback",
+        },
+        {
+          name: "--no-message-feedback-enabled",
+          description:
+            "Set to true to enable message feedback for the message. When a user receives the message you need to update the message status using PutMessageFeedback",
+        },
+        {
           name: "--cli-input-json",
           description:
             "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
@@ -3963,6 +4211,45 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "string",
           },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
+      name: "set-default-message-feedback-enabled",
+      description: "Sets a configuration set's default for message feedback",
+      options: [
+        {
+          name: "--configuration-set-name",
+          description:
+            "The name of the configuration set to use. This can be either the ConfigurationSetName or ConfigurationSetArn",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--message-feedback-enabled",
+          description: "Set to true to enable message feedback",
+        },
+        {
+          name: "--no-message-feedback-enabled",
+          description: "Set to true to enable message feedback",
         },
         {
           name: "--cli-input-json",

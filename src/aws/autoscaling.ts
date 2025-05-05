@@ -84,7 +84,7 @@ const completionSpec: Fig.Spec = {
     {
       name: "attach-load-balancers",
       description:
-        "This API operation is superseded by AttachTrafficSources, which can attach multiple traffic sources types. We recommend using AttachTrafficSources to simplify how you manage traffic sources. However, we continue to support AttachLoadBalancers. You can use both the original AttachLoadBalancers API operation and AttachTrafficSources on the same Auto Scaling group.  Attaches one or more Classic Load Balancers to the specified Auto Scaling group. Amazon EC2 Auto Scaling registers the running instances with these Classic Load Balancers. To describe the load balancers for an Auto Scaling group, call the DescribeLoadBalancers API. To detach a load balancer from the Auto Scaling group, call the DetachLoadBalancers API. This operation is additive and does not detach existing Classic Load Balancers or target groups from the Auto Scaling group. For more information, see Use Elastic Load Balancing to distribute traffic across the instances in your Auto Scaling group in the Amazon EC2 Auto Scaling User Guide",
+        "This API operation is superseded by https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_AttachTrafficSources.html, which can attach multiple traffic sources types. We recommend using AttachTrafficSources to simplify how you manage traffic sources. However, we continue to support AttachLoadBalancers. You can use both the original AttachLoadBalancers API operation and AttachTrafficSources on the same Auto Scaling group.  Attaches one or more Classic Load Balancers to the specified Auto Scaling group. Amazon EC2 Auto Scaling registers the running instances with these Classic Load Balancers. To describe the load balancers for an Auto Scaling group, call the DescribeLoadBalancers API. To detach a load balancer from the Auto Scaling group, call the DetachLoadBalancers API. This operation is additive and does not detach existing Classic Load Balancers or target groups from the Auto Scaling group. For more information, see Use Elastic Load Balancing to distribute traffic across the instances in your Auto Scaling group in the Amazon EC2 Auto Scaling User Guide",
       options: [
         {
           name: "--auto-scaling-group-name",
@@ -139,6 +139,16 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "list",
           },
+        },
+        {
+          name: "--skip-zonal-shift-validation",
+          description:
+            "If you enable zonal shift with cross-zone disabled load balancers, capacity could become imbalanced across Availability Zones. To skip the validation, specify true. For more information, see Auto Scaling group zonal shift in the Amazon EC2 Auto Scaling User Guide",
+        },
+        {
+          name: "--no-skip-zonal-shift-validation",
+          description:
+            "If you enable zonal shift with cross-zone disabled load balancers, capacity could become imbalanced across Availability Zones. To skip the validation, specify true. For more information, see Auto Scaling group zonal shift in the Amazon EC2 Auto Scaling User Guide",
         },
         {
           name: "--cli-input-json",
@@ -556,6 +566,39 @@ const completionSpec: Fig.Spec = {
           name: "--instance-maintenance-policy",
           description:
             "An instance maintenance policy. For more information, see Set instance maintenance policy in the Amazon EC2 Auto Scaling User Guide",
+          args: {
+            name: "structure",
+          },
+        },
+        {
+          name: "--availability-zone-distribution",
+          description:
+            "The instance capacity distribution across Availability Zones",
+          args: {
+            name: "structure",
+          },
+        },
+        {
+          name: "--availability-zone-impairment-policy",
+          description: "The policy for Availability Zone impairment",
+          args: {
+            name: "structure",
+          },
+        },
+        {
+          name: "--skip-zonal-shift-validation",
+          description:
+            "If you enable zonal shift with cross-zone disabled load balancers, capacity could become imbalanced across Availability Zones. To skip the validation, specify true. For more information, see Auto Scaling group zonal shift in the Amazon EC2 Auto Scaling User Guide",
+        },
+        {
+          name: "--no-skip-zonal-shift-validation",
+          description:
+            "If you enable zonal shift with cross-zone disabled load balancers, capacity could become imbalanced across Availability Zones. To skip the validation, specify true. For more information, see Auto Scaling group zonal shift in the Amazon EC2 Auto Scaling User Guide",
+        },
+        {
+          name: "--capacity-reservation-specification",
+          description:
+            "The capacity reservation specification for the Auto Scaling group",
           args: {
             name: "structure",
           },
@@ -3437,7 +3480,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--preferences",
           description:
-            "Sets your preferences for the instance refresh so that it performs as expected when you start it. Includes the instance warmup time, the minimum and maximum healthy percentages, and the behaviors that you want Amazon EC2 Auto Scaling to use if instances that are in Standby state or protected from scale in are found. You can also choose to enable additional features, such as the following:   Auto rollback   Checkpoints   CloudWatch alarms   Skip matching",
+            "Sets your preferences for the instance refresh so that it performs as expected when you start it. Includes the instance warmup time, the minimum and maximum healthy percentages, and the behaviors that you want Amazon EC2 Auto Scaling to use if instances that are in Standby state or protected from scale in are found. You can also choose to enable additional features, such as the following:   Auto rollback   Checkpoints   CloudWatch alarms   Skip matching   Bake time",
           args: {
             name: "structure",
           },
@@ -3634,7 +3677,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--placement-group",
           description:
-            "The name of an existing placement group into which to launch your instances. For more information, see Placement groups in the Amazon EC2 User Guide for Linux Instances.  A cluster placement group is a logical grouping of instances within a single Availability Zone. You cannot specify multiple Availability Zones and a cluster placement group",
+            "The name of an existing placement group into which to launch your instances. To remove the placement group setting, pass an empty string for placement-group. For more information about placement groups, see Placement groups in the Amazon EC2 User Guide for Linux Instances.  A cluster placement group is a logical grouping of instances within a single Availability Zone. You cannot specify multiple Availability Zones and a cluster placement group",
           args: {
             name: "string",
           },
@@ -3718,6 +3761,39 @@ const completionSpec: Fig.Spec = {
           name: "--instance-maintenance-policy",
           description:
             "An instance maintenance policy. For more information, see Set instance maintenance policy in the Amazon EC2 Auto Scaling User Guide",
+          args: {
+            name: "structure",
+          },
+        },
+        {
+          name: "--availability-zone-distribution",
+          description:
+            "The instance capacity distribution across Availability Zones",
+          args: {
+            name: "structure",
+          },
+        },
+        {
+          name: "--availability-zone-impairment-policy",
+          description: "The policy for Availability Zone impairment",
+          args: {
+            name: "structure",
+          },
+        },
+        {
+          name: "--skip-zonal-shift-validation",
+          description:
+            "If you enable zonal shift with cross-zone disabled load balancers, capacity could become imbalanced across Availability Zones. To skip the validation, specify true. For more information, see Auto Scaling group zonal shift in the Amazon EC2 Auto Scaling User Guide",
+        },
+        {
+          name: "--no-skip-zonal-shift-validation",
+          description:
+            "If you enable zonal shift with cross-zone disabled load balancers, capacity could become imbalanced across Availability Zones. To skip the validation, specify true. For more information, see Auto Scaling group zonal shift in the Amazon EC2 Auto Scaling User Guide",
+        },
+        {
+          name: "--capacity-reservation-specification",
+          description:
+            "The capacity reservation specification for the Auto Scaling group",
           args: {
             name: "structure",
           },

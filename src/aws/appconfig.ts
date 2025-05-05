@@ -78,7 +78,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--location-uri",
           description:
-            "A URI to locate the configuration. You can specify the following:   For the AppConfig hosted configuration store and for feature flags, specify hosted.   For an Amazon Web Services Systems Manager Parameter Store parameter, specify either the parameter name in the format ssm-parameter://<parameter name> or the ARN.   For an Amazon Web Services CodePipeline pipeline, specify the URI in the following format: codepipeline://<pipeline name>.   For an Secrets Manager secret, specify the URI in the following format: secretsmanager://<secret name>.   For an Amazon S3 object, specify the URI in the following format: s3://<bucket>/<objectKey> . Here is an example: s3://my-bucket/my-app/us-east-1/my-config.json    For an SSM document, specify either the document name in the format ssm-document://<document name> or the Amazon Resource Name (ARN)",
+            "A URI to locate the configuration. You can specify the following:   For the AppConfig hosted configuration store and for feature flags, specify hosted.   For an Amazon Web Services Systems Manager Parameter Store parameter, specify either the parameter name in the format ssm-parameter://<parameter name> or the ARN.   For an Amazon Web Services CodePipeline pipeline, specify the URI in the following format: codepipeline://<pipeline name>.   For an Secrets Manager secret, specify the URI in the following format: secretsmanager://<secret name>.   For an Amazon S3 object, specify the URI in the following format: s3://<bucket>/<objectKey> . Here is an example: s3://amzn-s3-demo-bucket/my-app/us-east-1/my-config.json    For an SSM document, specify either the document name in the format ssm-document://<document name> or the Amazon Resource Name (ARN)",
           args: {
             name: "string",
           },
@@ -852,7 +852,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--client-configuration-version",
           description:
-            "The configuration version returned in the most recent GetConfiguration response.  AppConfig uses the value of the ClientConfigurationVersion parameter to identify the configuration version on your clients. If you don\u2019t send ClientConfigurationVersion with each call to GetConfiguration, your clients receive the current configuration. You are charged each time your clients receive a configuration. To avoid excess charges, we recommend you use the StartConfigurationSession and GetLatestConfiguration APIs, which track the client configuration version on your behalf. If you choose to continue using GetConfiguration, we recommend that you include the ClientConfigurationVersion value with every call to GetConfiguration. The value to use for ClientConfigurationVersion comes from the ConfigurationVersion attribute returned by GetConfiguration when there is new or updated data, and should be saved for subsequent calls to GetConfiguration.  For more information about working with configurations, see Retrieving the Configuration in the AppConfig User Guide",
+            "The configuration version returned in the most recent GetConfiguration response.  AppConfig uses the value of the ClientConfigurationVersion parameter to identify the configuration version on your clients. If you don\u2019t send ClientConfigurationVersion with each call to GetConfiguration, your clients receive the current configuration. You are charged each time your clients receive a configuration. To avoid excess charges, we recommend you use the StartConfigurationSession and GetLatestConfiguration APIs, which track the client configuration version on your behalf. If you choose to continue using GetConfiguration, we recommend that you include the ClientConfigurationVersion value with every call to GetConfiguration. The value to use for ClientConfigurationVersion comes from the ConfigurationVersion attribute returned by GetConfiguration when there is new or updated data, and should be saved for subsequent calls to GetConfiguration.  For more information about working with configurations, see Retrieving feature flags and configuration data in AppConfig in the AppConfig User Guide",
           args: {
             name: "string",
           },
@@ -1659,7 +1659,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--max-results",
           description:
-            "The maximum number of items to return for this call. The call also returns a token that you can specify in a subsequent call to get the next set of results",
+            "The maximum number of items to return for this call. If MaxResults is not provided in the call, AppConfig returns the maximum of 50. The call also returns a token that you can specify in a subsequent call to get the next set of results",
           args: {
             name: "integer",
           },
@@ -1847,7 +1847,7 @@ const completionSpec: Fig.Spec = {
     {
       name: "stop-deployment",
       description:
-        "Stops a deployment. This API action works only on deployments that have a status of DEPLOYING. This action moves the deployment to a status of ROLLED_BACK",
+        "Stops a deployment. This API action works only on deployments that have a status of DEPLOYING, unless an AllowRevert parameter is supplied. If the AllowRevert parameter is supplied, the status of an in-progress deployment will be ROLLED_BACK. The status of a completed deployment will be REVERTED. AppConfig only allows a revert within 72 hours of deployment completion",
       options: [
         {
           name: "--application-id",
@@ -1869,6 +1869,16 @@ const completionSpec: Fig.Spec = {
           args: {
             name: "integer",
           },
+        },
+        {
+          name: "--allow-revert",
+          description:
+            "A Boolean that enables AppConfig to rollback a COMPLETED deployment to the previous configuration version. This action moves the deployment to a status of REVERTED",
+        },
+        {
+          name: "--no-allow-revert",
+          description:
+            "A Boolean that enables AppConfig to rollback a COMPLETED deployment to the previous configuration version. This action moves the deployment to a status of REVERTED",
         },
         {
           name: "--cli-input-json",

@@ -304,7 +304,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--kms-key-id",
           description:
-            "Identifies which KMS key is used to encrypt the container image",
+            "Identifies which KMS key is used to encrypt the Dockerfile template",
           args: {
             name: "string",
           },
@@ -831,7 +831,7 @@ const completionSpec: Fig.Spec = {
         {
           name: "--resource-tags",
           description:
-            "The tags attached to the resource created by Image Builder",
+            "The metadata tags to assign to the Amazon EC2 instance that Image Builder launches during the build process. Tags are formatted as key value pairs",
           args: {
             name: "map",
           },
@@ -846,9 +846,18 @@ const completionSpec: Fig.Spec = {
         },
         {
           name: "--tags",
-          description: "The tags of the infrastructure configuration",
+          description:
+            "The metadata tags to assign to the infrastructure configuration resource that Image Builder creates as output. Tags are formatted as key value pairs",
           args: {
             name: "map",
+          },
+        },
+        {
+          name: "--placement",
+          description:
+            "The instance placement settings that define where the instances that are launched from your image will run",
+          args: {
+            name: "structure",
           },
         },
         {
@@ -1755,6 +1764,54 @@ const completionSpec: Fig.Spec = {
       ],
     },
     {
+      name: "get-marketplace-resource",
+      description:
+        "Verify the subscription and perform resource dependency checks on the requested Amazon Web Services Marketplace resource. For Amazon Web Services Marketplace components, the response contains fields to download the components and their artifacts",
+      options: [
+        {
+          name: "--resource-type",
+          description:
+            "Specifies which type of Amazon Web Services Marketplace resource Image Builder retrieves",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--resource-arn",
+          description:
+            "The Amazon Resource Name (ARN) that uniquely identifies an Amazon Web Services Marketplace resource",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--resource-location",
+          description:
+            "The bucket path that you can specify to download the resource from Amazon S3",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--cli-input-json",
+          description:
+            "Performs service operation based on the JSON string provided. The JSON string follows the format provided by ``--generate-cli-skeleton``. If other arguments are provided on the command line, the CLI values will override the JSON-provided values. It is not possible to pass arbitrary binary values using a JSON-provided value as the string will be taken literally",
+          args: {
+            name: "string",
+          },
+        },
+        {
+          name: "--generate-cli-skeleton",
+          description:
+            "Prints a JSON skeleton to standard output without sending an API request. If provided with no value or the value ``input``, prints a sample input JSON that can be used as an argument for ``--cli-input-json``. If provided with the value ``output``, it validates the command inputs and returns a sample output JSON for that command",
+          args: {
+            name: "string",
+            suggestions: ["input", "output"],
+          },
+        },
+      ],
+    },
+    {
       name: "get-workflow",
       description: "Get a workflow resource object",
       options: [
@@ -2054,7 +2111,7 @@ const completionSpec: Fig.Spec = {
     {
       name: "list-component-build-versions",
       description:
-        "Returns the list of component build versions for the specified semantic version.  The semantic version has four nodes: <major>.<minor>.<patch>/<build>. You can assign values for the first three, and can filter on all of them.  Filtering: With semantic versioning, you have the flexibility to use wildcards (x) to specify the most recent versions or nodes when selecting the base image or components for your recipe. When you use a wildcard in any node, all nodes to the right of the first wildcard must also be wildcards",
+        "Returns the list of component build versions for the specified component version Amazon Resource Name (ARN)",
       options: [
         {
           name: "--component-version-arn",
@@ -3827,14 +3884,6 @@ const completionSpec: Fig.Spec = {
           },
         },
         {
-          name: "--client-token",
-          description:
-            "Unique, case-sensitive identifier you provide to ensure idempotency of the request. For more information, see Ensuring idempotency in the Amazon EC2 API Reference",
-          args: {
-            name: "string",
-          },
-        },
-        {
           name: "--resource-tags",
           description:
             "The tags attached to the resource created by Image Builder",
@@ -3848,6 +3897,22 @@ const completionSpec: Fig.Spec = {
             "The instance metadata options that you can set for the HTTP requests that pipeline builds use to launch EC2 build and test instances. For more information about instance metadata options, see one of the following links:    Configure the instance metadata options in the  Amazon EC2 User Guide  for Linux instances.    Configure the instance metadata options in the  Amazon EC2 Windows Guide  for Windows instances",
           args: {
             name: "structure",
+          },
+        },
+        {
+          name: "--placement",
+          description:
+            "The instance placement settings that define where the instances that are launched from your image will run",
+          args: {
+            name: "structure",
+          },
+        },
+        {
+          name: "--client-token",
+          description:
+            "Unique, case-sensitive identifier you provide to ensure idempotency of the request. For more information, see Ensuring idempotency in the Amazon EC2 API Reference",
+          args: {
+            name: "string",
           },
         },
         {
